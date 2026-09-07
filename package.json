@@ -49,11 +49,11 @@
     "esbuild": "^0.28.2",
     "eslint": "^10.9.1",
     "eslint-plugin-obsidianmd": "^0.4.2",
-    "happy-dom": "^20.11.15",
-    "knip": "^6.33.0",
+    "happy-dom": "^20.14.0",
+    "knip": "^6.34.0",
     "obsidian": "^1.13.1",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.68.0",
+    "typescript-eslint": "^8.69.0",
     "vitest": "^4.1.11"
   }
 }
