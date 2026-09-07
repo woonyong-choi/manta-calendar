@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Replace the fragile one-shot OAuth callback redirect with a no-store completion page that attempts to reopen Obsidian and offers an explicit, localized **Open Obsidian** recovery action when the browser requires a user gesture.
+- Preserve the signed PKCE state, fixed protocol destination, least-privilege Google scope, and no-storage relay boundary while adding light/dark browser presentation and callback regression coverage.
+
 ## 3.6.0
 
 - Add an opt-in, manual, one-way projection from selected configured folder sources to a dedicated Google calendar.

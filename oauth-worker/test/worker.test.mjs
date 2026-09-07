@@ -63,7 +63,7 @@ test("authorize redirects with PKCE and a signed short-lived state", async () =>
   assert.equal(relay.challenge, "c".repeat(43));
 });
 
-test("callback can only return to the fixed Obsidian protocol", async () => {
+test("callback offers an automatic and explicit return to the fixed Obsidian protocol", async () => {
   const relay = await createRelayState(env.STATE_SECRET, {
     challenge: "c".repeat(43),
     clientState: "s".repeat(43),
@@ -72,12 +72,37 @@ test("callback can only return to the fixed Obsidian protocol", async () => {
   const response = await worker.fetch(new Request(
     `https://relay.example/oauth/callback?code=google-code&state=${encodeURIComponent(relay)}`,
   ), env);
-  assert.equal(response.status, 302);
-  const target = new URL(response.headers.get("location"));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("location"), null);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.match(response.headers.get("content-security-policy"), /script-src 'nonce-[^']+'/);
+  const body = await response.text();
+  assert.match(body, /Open Obsidian/);
+  const href = body.match(/class="action" href="([^"]+)"/)?.[1].replaceAll("&amp;", "&");
+  assert.ok(href);
+  const target = new URL(href);
   assert.equal(target.protocol, "obsidian:");
   assert.equal(target.hostname, "link-calendar-google");
   assert.equal(target.searchParams.get("code"), "google-code");
   assert.equal(target.searchParams.get("state"), "s".repeat(43));
+  assert.match(body, /window\.location\.assign\(returnUri\)/);
+});
+
+test("callback keeps the signed locale for recovery instructions", async () => {
+  const relay = await createRelayState(env.STATE_SECRET, {
+    challenge: "c".repeat(43),
+    clientState: "s".repeat(43),
+    expiresAt: Date.now() + 60_000,
+    locale: "ko",
+  });
+  const response = await worker.fetch(new Request(
+    `https://relay.example/oauth/callback?error=access_denied&state=${encodeURIComponent(relay)}`,
+  ), env);
+  assert.equal(response.status, 200);
+  const body = await response.text();
+  assert.match(body, /<html lang="ko">/);
+  assert.match(body, /Obsidian 열기/);
+  assert.match(body, /error=access_denied/);
 });
 
 test("token exchange verifies PKCE before forwarding credentials", async () => {

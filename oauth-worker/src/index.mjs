@@ -61,6 +61,7 @@ async function authorize(url, env) {
     challenge,
     clientState,
     expiresAt: Date.now() + 10 * 60 * 1_000,
+    locale,
     nonce: crypto.randomUUID(),
   });
   const target = new URL(GOOGLE_AUTHORIZE);
@@ -83,12 +84,12 @@ async function callback(url, env) {
   const error = url.searchParams.get("error") ?? "";
   const code = url.searchParams.get("code") ?? "";
   if (!error && !code) throw new Error("invalid_callback");
-  return redirect(pluginRedirect(env.PLUGIN_REDIRECT_URI, {
+  return oauthCompletion(pluginRedirect(env.PLUGIN_REDIRECT_URI, {
     code,
     error,
     relay_state: relayState,
     state: state.clientState,
-  }));
+  }), state.locale === "ko" ? "ko" : "en");
 }
 
 async function exchange(request, env) {
@@ -238,6 +239,82 @@ function html(body, status = 200) {
     },
     status,
   });
+}
+
+function oauthCompletion(returnUri, locale) {
+  const copy = locale === "ko"
+    ? {
+      action: "Obsidian 열기",
+      fallback: "Obsidian이 자동으로 열리지 않으면 아래 버튼을 누르세요.",
+      heading: "Google Calendar 연결을 계속하세요",
+      lead: "Google 승인이 완료되었습니다. Link Calendar Navigator로 돌아가 연결을 마칩니다.",
+      opening: "Obsidian을 여는 중입니다…",
+    }
+    : {
+      action: "Open Obsidian",
+      fallback: "If Obsidian did not open automatically, use the button below.",
+      heading: "Continue your Google Calendar connection",
+      lead: "Google authorization is complete. Return to Link Calendar Navigator to finish connecting.",
+      opening: "Opening Obsidian…",
+    };
+  const nonce = crypto.randomUUID();
+  const scriptUri = JSON.stringify(returnUri).replaceAll("<", "\\u003c");
+  return new Response(`<!doctype html>
+<html lang="${locale}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${copy.heading}</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --background: #f7f8fa; --foreground: #18202c; --muted: #5d6878; --lead: #303a49; --action: #246de8; --action-hover: #175ccc; }
+    @media (prefers-color-scheme: dark) { :root { --background: #111318; --foreground: #eef0f4; --muted: #aeb6c4; --lead: #e1e5ec; --action: #6aa2ff; --action-hover: #8bb7ff; } }
+    body { box-sizing: border-box; margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--background); color: var(--foreground); }
+    main { width: min(560px, 100%); }
+    .eyebrow { color: var(--muted); font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: .5rem 0 1rem; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.02; letter-spacing: -.04em; }
+    p { color: var(--muted); line-height: 1.65; }
+    .lead { color: var(--lead); font-size: 1.08rem; }
+    .action { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; margin-top: .75rem; padding: 0 1.1rem; border-radius: 8px; background: var(--action); color: #fff; font-weight: 750; text-decoration: none; }
+    .action:hover { background: var(--action-hover); }
+    .action:focus-visible { outline: 3px solid var(--action); outline-offset: 4px; }
+    .status { margin-top: 1rem; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Link Calendar Navigator</p>
+    <h1>${copy.heading}</h1>
+    <p class="lead">${copy.lead}</p>
+    <a class="action" href="${escapeHtml(returnUri)}">${copy.action}</a>
+    <p class="status" id="status" role="status" aria-live="polite">${copy.opening}</p>
+  </main>
+  <script nonce="${nonce}">
+    const returnUri = ${scriptUri};
+    window.location.assign(returnUri);
+    window.setTimeout(() => {
+      document.querySelector("#status").textContent = ${JSON.stringify(copy.fallback)};
+    }, 1500);
+  </script>
+</body>
+</html>`, {
+    headers: {
+      "Cache-Control": "no-store",
+      "Content-Security-Policy": `default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
+      "Content-Type": "text/html; charset=utf-8",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+    },
+    status: 200,
+  });
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 function homePage() {

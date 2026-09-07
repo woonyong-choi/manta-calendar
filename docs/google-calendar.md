@@ -7,8 +7,9 @@ Link Calendar's Google integration is a narrow, optional projection for notifica
 1. Configure a folder source in Link Calendar.
 2. Enable Google Calendar in plugin settings.
 3. Select **Connect Google Calendar** and approve the single requested permission in the browser.
-4. Enable one or more source mappings.
-5. Select **Sync now**.
+4. The callback tries to reopen Obsidian automatically. If the browser blocks the app link, select **Open Obsidian** on the completion page.
+5. Enable one or more source mappings.
+6. Select **Sync now**.
 
 The plugin creates one dedicated secondary calendar named **Link Calendar**. No Google developer credentials are required from end users.
 
@@ -40,6 +41,8 @@ The cross-platform callback uses a small Cloudflare Worker relay because Obsidia
 - requests only `calendar.app.created`;
 - exchanges, refreshes, and revokes tokens without storing them;
 - rejects malformed or oversized requests and disables observability.
+
+After Google returns to the HTTPS callback, the relay serves a no-store completion page. It attempts the fixed Obsidian app link automatically and keeps a visible, keyboard-accessible **Open Obsidian** action as a recovery path for browsers that require a user gesture before opening another app.
 
 The refresh token remains in Obsidian `SecretStorage`. Calendar API requests are made directly from Obsidian. See [PRIVACY.md](../PRIVACY.md).
 
