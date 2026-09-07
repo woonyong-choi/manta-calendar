@@ -1,0 +1,16 @@
+[
+  {
+    "id": "link-calendar",
+    "output": "link-calendar-demo.gif",
+    "width": 1600,
+    "height": 900,
+    "fps": 10,
+    "frameDuration": 2.0,
+    "fadeDuration": 0.25,
+    "frames": [
+      "captures/frames/01-markdown-source.png",
+      "captures/frames/02-text-month.png",
+      "captures/frames/03-agenda.png"
+    ]
+  }
+]

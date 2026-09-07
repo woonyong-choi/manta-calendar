@@ -26,4 +26,4 @@ Link Calendar Navigator remains a focused navigator over dated Markdown. The ori
 - Claiming continuous background sync while Obsidian is closed.
 - Automatic note rewriting, remote AI, telemetry, or a second event database.
 
-Use [Issues](https://github.com/woonyong-kr/link-calendar/issues/new/choose) for reproducible bugs and use cases. Broader questions belong in [Discussions](https://github.com/woonyong-kr/link-calendar/discussions).
+Use [Issues](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/issues/new/choose) for reproducible bugs and use cases. Broader questions belong in [Discussions](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/discussions).

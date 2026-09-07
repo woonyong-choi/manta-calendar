@@ -2,8 +2,8 @@
 
 <p align="center">
   <a href="obsidian://show-plugin?id=link-calendar"><img alt="Obsidian Community Plugin" src="https://img.shields.io/badge/Obsidian-Community_plugin-7C3AED?logo=obsidian" /></a>
-  <a href="https://github.com/woonyong-kr/link-calendar/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/woonyong-kr/link-calendar/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://github.com/woonyong-kr/link-calendar/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/woonyong-kr/link-calendar?sort=semver" /></a>
+  <a href="https://github.com/woonyong-kr/obsidian-link-calendar-navigator/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/woonyong-kr/obsidian-link-calendar-navigator/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://github.com/woonyong-kr/obsidian-link-calendar-navigator/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/woonyong-kr/obsidian-link-calendar-navigator?sort=semver" /></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
 </p>
 
@@ -193,12 +193,12 @@ Removing the plugin leaves every Markdown note and property intact.
 
 Install from **Settings → Community plugins → Browse → Link Calendar Navigator**. The plugin supports Obsidian 1.13.0 or later on desktop and mobile.
 
-For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-kr/link-calendar/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
+For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
 
 ## Support and development
 
 - Read the [changelog](CHANGELOG.md), [roadmap](ROADMAP.md), and [design QA](docs/design-qa.md).
-- Report a [bug or use case](https://github.com/woonyong-kr/link-calendar/issues/new/choose).
+- Report a [bug or use case](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/issues/new/choose).
 - Review the [contributing guide](CONTRIBUTING.md) and [security policy](SECURITY.md).
 
 ```bash

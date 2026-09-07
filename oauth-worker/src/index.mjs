@@ -331,7 +331,7 @@ function homePage() {
       <p>An explicit sync creates or updates events from selected Obsidian folder sources in a secondary calendar named <strong>Link Calendar</strong>. Markdown remains the source of truth.</p>
     </section>
     <nav aria-label="Project links">
-      <a href="https://github.com/woonyong-kr/link-calendar">Source and documentation</a>
+      <a href="https://github.com/woonyong-kr/obsidian-link-calendar-navigator">Source and documentation</a>
       <a href="/privacy">Privacy policy</a>
     </nav>
   `);
@@ -356,11 +356,11 @@ function privacyPage() {
     </section>
     <section>
       <h2>Contact</h2>
-      <p>For privacy questions, open a non-sensitive <a href="https://github.com/woonyong-kr/link-calendar/discussions">GitHub Discussion</a>. Use <a href="https://github.com/woonyong-kr/link-calendar/security">private vulnerability reporting</a> for security-sensitive reports.</p>
+      <p>For privacy questions, open a non-sensitive <a href="https://github.com/woonyong-kr/obsidian-link-calendar-navigator/discussions">GitHub Discussion</a>. Use <a href="https://github.com/woonyong-kr/obsidian-link-calendar-navigator/security">private vulnerability reporting</a> for security-sensitive reports.</p>
     </section>
     <nav aria-label="Project links">
       <a href="/">Link Calendar home</a>
-      <a href="https://github.com/woonyong-kr/link-calendar/blob/main/PRIVACY.md">Full privacy policy</a>
+      <a href="https://github.com/woonyong-kr/obsidian-link-calendar-navigator/blob/main/PRIVACY.md">Full privacy policy</a>
     </nav>
   `);
 }

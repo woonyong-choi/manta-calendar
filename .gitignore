@@ -7,3 +7,6 @@ oauth-worker/.dev.vars.*
 main.js
 *.log
 .DS_Store
+
+# Demo build output is reproducible from the checked-in 16:9 source frames.
+demo/dist/

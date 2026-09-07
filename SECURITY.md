@@ -24,4 +24,4 @@ See [PRIVACY.md](PRIVACY.md) for the user-facing Google data disclosure and [doc
 
 ## Reporting
 
-Do not include private Vault content in a public issue. Report reproducible non-sensitive bugs through [GitHub Issues](https://github.com/woonyong-kr/link-calendar/issues/new/choose). For a vulnerability that cannot be described safely in public, use GitHub's private vulnerability reporting for this repository.
+Do not include private Vault content in a public issue. Report reproducible non-sensitive bugs through [GitHub Issues](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/issues/new/choose). For a vulnerability that cannot be described safely in public, use GitHub's private vulnerability reporting for this repository.
