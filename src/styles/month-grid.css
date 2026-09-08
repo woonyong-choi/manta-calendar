@@ -86,7 +86,6 @@
   align-self: center;
 }
 
-.link-calendar__day.is-selected .link-calendar__day-number,
 .link-calendar__day-number.is-today {
   color: var(--cc-text-on-accent);
   background: var(--cc-accent);

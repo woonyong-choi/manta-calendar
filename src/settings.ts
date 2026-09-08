@@ -1,3 +1,4 @@
+import type { ConnectionPhase } from "./google-auth";
 import {
   type App,
   Notice,
@@ -26,6 +27,7 @@ export interface SettingsHost {
   disconnectGoogle(): Promise<void>;
   googleAvailable(): boolean;
   googleConnected(): boolean;
+  googleConnectionPhase?(): ConnectionPhase;
   ensureGoogleCalendar(): Promise<void>;
   saveSettings(rebuildIndex?: boolean): Promise<void>;
   sourceHealth(profile: SourceProfile): SourceHealth;
@@ -170,6 +172,15 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
       },
     ];
     if (!google.enabled) return items;
+    items.push({
+      name: translate(locale, "googleConnectionStatus"),
+      render: (setting) => {
+        const refresh = () => setting.setDesc(translate(locale, this.host.googleConnectionPhase?.() ?? "idle"));
+        refresh();
+        setting.addExtraButton((button) => button.setIcon("refresh-cw")
+          .setTooltip(translate(locale, "googleConnectionStatus")).onClick(() => { refresh(); this.update(); }));
+      },
+    });
     items.push({
       name: connected ? translate(locale, "googleConnected") : translate(locale, "googleConnect"),
       desc: translate(locale, "googleCalendarDesc"),

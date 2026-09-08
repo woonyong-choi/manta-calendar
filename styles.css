@@ -417,7 +417,6 @@
   align-self: center;
 }
 
-.link-calendar__day.is-selected .link-calendar__day-number,
 .link-calendar__day-number.is-today {
   color: var(--cc-text-on-accent);
   background: var(--cc-accent);
@@ -938,3 +937,12 @@
     forced-color-adjust: none;
   }
 }
+
+.link-calendar__example {
+  padding-block: var(--cc-space-2);
+  color: var(--cc-text-secondary);
+  font-size: var(--cc-font-sm);
+  text-align: start;
+}
+.link-calendar__example summary { cursor: pointer; }
+.link-calendar__example pre { white-space: pre-wrap; overflow-wrap: anywhere; }

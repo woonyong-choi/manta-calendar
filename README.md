@@ -39,13 +39,13 @@ The public-safe 16:9 walkthrough shows the whole boundary: Markdown timeline, ca
 - **Optional controlled writing:** folder profiles can explicitly allow note creation and conflict-checked date moves.
 - **Local by default:** no account or network request is used until Google Calendar is explicitly enabled and connected.
 
-## Five-second start
+## First timeline
 
 1. Install **Link Calendar Navigator** from **Settings → Community plugins**.
 2. Run **Open Link Calendar Navigator** or select the calendar ribbon icon.
 3. Move between months, select an event title, and open its canonical Markdown.
 
-That is enough for read-only navigation. Folder setup is optional and is needed only when you want a custom property mapping or explicitly writable calendar notes.
+If the month is empty, expand the example help and copy a dated list entry into a note. Automatic indexing recognizes explicit body dates; frontmatter dates require a configured source. Folder setup is optional and is needed only when you want a custom property mapping or explicitly writable calendar notes.
 
 ## Optional Google Calendar reminders
 

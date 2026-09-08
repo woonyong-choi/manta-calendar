@@ -312,6 +312,8 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     return this.googleAuth.isConnected();
   }
 
+  googleConnectionPhase() { return this.googleAuth.connectionPhase(); }
+
   async connectGoogle(): Promise<void> {
     if (!this.settings.googleCalendar.enabled) return;
     try {

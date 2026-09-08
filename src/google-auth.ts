@@ -34,7 +34,18 @@ interface PendingAuthorization {
 
 export class GoogleAuthError extends Error {}
 
+export type ConnectionPhase = "idle" | "waiting" | "returned" | "exchanging" | "connected" | "failed" | "expired";
+
 export class GoogleAuthManager {
+  private phase: ConnectionPhase = "idle";
+
+  connectionPhase(): ConnectionPhase {
+    if (this.phase === "waiting" || this.phase === "idle") {
+      try { this.readPending(); return "waiting"; }
+      catch { if (this.phase === "waiting") return "expired"; }
+    }
+    return this.phase === "idle" && this.isConnected() ? "connected" : this.phase;
+  }
   private accessToken = "";
   private accessTokenExpiresAt = 0;
 
@@ -63,22 +74,31 @@ export class GoogleAuthManager {
     url.searchParams.set("client_state", state);
     url.searchParams.set("code_challenge", challenge);
     url.searchParams.set("locale", locale === "ko" ? "ko" : "en");
+    this.phase = "waiting";
     return url.toString();
   }
 
   async completeAuthorization(data: OAuthProtocolData): Promise<void> {
-    const pending = this.readPending();
-    this.secrets.setSecret(PENDING_SECRET, "");
-    if (data.error) throw new GoogleAuthError(`Google authorization was denied: ${data.error}`);
-    if (!data.code || !data.relay_state || !data.state || data.state !== pending.state) {
-      throw new GoogleAuthError("Google authorization response did not match this connection request.");
+    this.phase = "returned";
+    try {
+      const pending = this.readPending();
+      if (data.error) throw new GoogleAuthError("Google authorization was cancelled. Start a new connection from settings.");
+      if (!data.code || !data.relay_state || !data.state || data.state !== pending.state) {
+        throw new GoogleAuthError("Google authorization response did not match this connection request.");
+      }
+      this.secrets.setSecret(PENDING_SECRET, "");
+      this.phase = "exchanging";
+      const token = await this.postToken("oauth/token", {
+        code: data.code,
+        relayState: data.relay_state,
+        verifier: pending.verifier,
+      });
+      this.acceptToken(token, true);
+      this.phase = "connected";
+    } catch (error) {
+      this.phase = "failed";
+      throw error;
     }
-    const token = await this.postToken("oauth/token", {
-      code: data.code,
-      relayState: data.relay_state,
-      verifier: pending.verifier,
-    });
-    this.acceptToken(token, true);
   }
 
   async getAccessToken(): Promise<string> {
@@ -103,6 +123,7 @@ export class GoogleAuthManager {
         throw new GoogleAuthError("Google access could not be revoked. Try again before disconnecting locally.");
       }
     }
+    this.phase = "idle";
     this.accessToken = "";
     this.accessTokenExpiresAt = 0;
     this.secrets.setSecret(REFRESH_TOKEN_SECRET, "");

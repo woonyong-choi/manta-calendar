@@ -87,3 +87,7 @@ Run the isolated gates before deployment:
 npm run test:oauth
 npm exec --yes wrangler@4.128.0 -- deploy --dry-run --config oauth-worker/wrangler.jsonc
 ```
+
+## Connection recovery
+
+The settings page exposes a refreshable connection stage. Waiting means browser authorization or the return to the originating Vault has not completed; it does not mean token exchange succeeded. Use the completion page's Open Obsidian action, return to the intended Vault, then refresh connection status. Expired requests must be restarted. Failed exchange is distinct from a connected account or a usable destination calendar. Share only OS, browser, Obsidian version and stage when reporting problems; do not share callback URLs or tokens. This diagnostic does not establish that the previously reported user-specific handoff failure is fixed.

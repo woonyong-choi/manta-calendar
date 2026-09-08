@@ -43,7 +43,9 @@ describe("Google OAuth client", () => {
         status: 200,
       };
     });
+    expect(auth.connectionPhase()).toBe("idle");
     const authorizeUrl = new URL(await auth.beginAuthorization("ko"));
+    expect(auth.connectionPhase()).toBe("waiting");
     expect(authorizeUrl.origin).toBe("https://relay.example");
     expect(authorizeUrl.pathname).toBe("/oauth/authorize");
     expect(authorizeUrl.searchParams.get("locale")).toBe("ko");
@@ -55,6 +57,7 @@ describe("Google OAuth client", () => {
       relay_state: "signed-relay-state",
       state,
     });
+    expect(auth.connectionPhase()).toBe("connected");
     expect(auth.isConnected()).toBe(true);
     expect(await auth.getAccessToken()).toBe("access");
     expect(requests).toHaveLength(1);
@@ -84,11 +87,13 @@ describe("Google OAuth client", () => {
     const expired = manager(secrets, () => ({ json: {}, status: 500 }), () => now);
     await expired.beginAuthorization("en");
     now += 11 * 60 * 1_000;
+    expect(expired.connectionPhase()).toBe("expired");
     await expect(expired.completeAuthorization({
       code: "code",
       relay_state: "relay",
       state: "state",
     })).rejects.toThrow("expired");
+    expect(expired.connectionPhase()).toBe("failed");
   });
 
   it("refreshes access without putting the refresh token in a URL", async () => {

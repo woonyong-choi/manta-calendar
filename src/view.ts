@@ -230,11 +230,25 @@ export class LinkCalendarView extends ItemView {
     setIcon(empty.createDiv({ cls: "link-calendar__onboarding-icon" }), "calendar-search");
     empty.createEl("h2", { text: translate(settings.locale, "noSources") });
     empty.createEl("p", { text: translate(settings.locale, "onboarding") });
+    this.renderExample(empty, settings);
     empty.createEl("button", {
       cls: "mod-cta",
       text: translate(settings.locale, "chooseFolder"),
       attr: { type: "button" },
     }).onclick = () => this.actions.setup();
+  }
+
+  private renderExample(parent: HTMLElement, settings: CalendarSettings): void {
+    const help = parent.createEl("details", { cls: "link-calendar__example" });
+    help.createEl("summary", { text: translate(settings.locale, "exampleHelp") });
+    const example = `- ${this.selectedDate} ${settings.locale === "ko" ? "예정 · 회의 준비" : "scheduled · Prepare meeting"}`;
+    help.createEl("pre").createEl("code", { text: example });
+    const copy = help.createEl("button", { text: translate(settings.locale, "copyExample"), attr: { type: "button" } });
+    copy.onclick = () => {
+      void Promise.resolve().then(() => navigator.clipboard.writeText(example))
+        .then(() => copy.setText(translate(settings.locale, "exampleCopied")))
+        .catch(() => copy.setText(translate(settings.locale, "copyFailed")));
+    };
   }
 
   private async toggleFocusMode(): Promise<void> {
@@ -482,6 +496,7 @@ export class LinkCalendarView extends ItemView {
     setIcon(surface.createDiv({ cls: "link-calendar__surface-icon" }), icon);
     surface.createEl("h2", { text: translate(settings.locale, title) });
     surface.createEl("p", { text: translate(settings.locale, description) });
+    if (state === "empty") this.renderExample(surface, settings);
     if (state === "filtered-empty") {
       surface.createEl("button", {
         text: translate(settings.locale, "clearFilters"),

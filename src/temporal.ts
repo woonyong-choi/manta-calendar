@@ -53,7 +53,7 @@ export function extractMarkdownTemporal(
 ): TemporalCandidate[] {
   const candidates: TemporalCandidate[] = [];
   let inFrontmatter = markdown.startsWith("---");
-  let inFence = false;
+  let fence: { marker: string; length: number } | null = null;
   let inComment = false;
   const lines = markdown.split(/\r?\n/u);
   for (let index = 0; index < lines.length; index += 1) {
@@ -63,11 +63,17 @@ export function extractMarkdownTemporal(
       if (index > 0 && trimmed === "---") inFrontmatter = false;
       continue;
     }
-    if (/^(```|~~~)/u.test(trimmed)) {
-      inFence = !inFence;
+    const delimiter = /^ {0,3}(`{3,}|~{3,})(.*)$/u.exec(rawLine);
+    if (fence) {
+      if (delimiter && delimiter[1]?.[0] === fence.marker
+        && delimiter[1].length >= fence.length && !delimiter[2]?.trim()) fence = null;
       continue;
     }
-    if (inFence || trimmed.startsWith(">")) continue;
+    if (delimiter && !(delimiter[1]?.[0] === "`" && delimiter[2]?.includes("`"))) {
+      fence = { marker: delimiter[1]?.[0] ?? "`", length: delimiter[1]?.length ?? 3 };
+      continue;
+    }
+    if (trimmed.startsWith(">")) continue;
     let line = rawLine;
     if (inComment) {
       const end = line.indexOf("-->");

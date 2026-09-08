@@ -123,3 +123,13 @@ https://example.com/2026-03-03
     ]);
   });
 });
+
+for (const [opening, inner, closing] of [["````markdown", "```", "````"], ["~~~md", "```", "~~~"], ["````", "```", ""]]) {
+  it(`keeps nested fences inside ${String(opening)} out of the calendar`, () => {
+    const markdown = [opening, inner, "- 2026-09-08 [[Example]]", inner, closing].join("\n");
+    expect(extractMarkdownTemporal("Test.md", "Test", markdown)).toEqual([]);
+  });
+}
+it("resumes dates after a valid closing fence", () => {
+  expect(extractMarkdownTemporal("Test.md", "Test", ["````md", "```", "`````", "- 2026-09-09 Visible"].join("\n"))).toHaveLength(1);
+});
