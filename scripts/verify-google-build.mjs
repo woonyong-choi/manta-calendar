@@ -1,8 +1,11 @@
 import { readFile } from "node:fs/promises";
+import { googleRelayUrl as relay, officialGoogleRelayUrl } from "./google-build-config.mjs";
 
-const relay = process.env.LINK_CALENDAR_GOOGLE_RELAY_URL?.trim() ?? "";
 const relayRequired = process.env.LINK_CALENDAR_REQUIRE_GOOGLE_RELAY === "1";
 const errors = [];
+if (relayRequired && relay !== officialGoogleRelayUrl) {
+  errors.push("Official releases must use the versioned Google OAuth relay origin for reproducible builds");
+}
 let url;
 
 if (relay) {

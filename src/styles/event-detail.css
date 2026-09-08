@@ -133,6 +133,23 @@
   text-underline-offset: var(--cc-space-1);
 }
 
+.link-calendar__agenda-note-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cc-space-1);
+}
+
+.link-calendar__agenda-note-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--cc-text-tertiary);
+}
+
+.link-calendar__agenda-note-icon svg {
+  width: 1em;
+  height: 1em;
+}
+
 .link-calendar a.link-calendar__agenda-link {
   display: block;
   width: fit-content;

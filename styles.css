@@ -237,15 +237,6 @@
   border-radius: var(--cc-radius-sm);
 }
 
-.link-calendar__today {
-  min-height: var(--cc-control-height);
-  margin: 0;
-  padding-inline: var(--cc-space-3);
-  border-radius: var(--cc-radius-sm);
-  font-size: var(--cc-font-sm);
-  font-weight: var(--cc-weight-semibold);
-}
-
 .link-calendar__search {
   width: clamp(
     calc(var(--cc-space-8) * 4),
@@ -636,6 +627,23 @@
   font-size: inherit;
   text-decoration: underline;
   text-underline-offset: var(--cc-space-1);
+}
+
+.link-calendar__agenda-note-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cc-space-1);
+}
+
+.link-calendar__agenda-note-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--cc-text-tertiary);
+}
+
+.link-calendar__agenda-note-icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .link-calendar a.link-calendar__agenda-link {

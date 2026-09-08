@@ -100,13 +100,13 @@ Link Calendar Navigator uses one stable identity:
 canonical target + start date + end date + temporal kind
 ```
 
-Matching entries become one calendar item. The selected-day panel shows the source note separately from the unique notes that mention it:
+Matching entries become one calendar item. The selected-day panel uses a link icon beside the source note title and lists other notes that mention it:
 
 ```text
 KRAFTON AI Engineer intern application
 2026-08-02 → 2026-08-27
 
-Source note: KRAFTON AI Engineer intern application
+[link icon] KRAFTON AI Engineer intern application
 Mentioned in 4 notes
 ```
 
@@ -184,7 +184,7 @@ Removing the plugin leaves every Markdown note and property intact.
 - **Create or drag is unavailable:** automatic items are read-only; enable a valid writable folder profile for mutations.
 - **A move was rejected:** the Markdown changed after indexing or no longer matches the configured source.
 - **Search shows no results:** clear the query and source filters to restore the month.
-- **Google Calendar is unavailable:** update to a release build; development builds require `LINK_CALENDAR_GOOGLE_RELAY_URL` at build time.
+- **Google Calendar is unavailable:** check the connection settings and retry. Clean-checkout builds use the versioned public relay origin; custom development builds can override `LINK_CALENDAR_GOOGLE_RELAY_URL`.
 - **A Google event was not overwritten:** check the sync summary. A remote ETag change is reported as a conflict instead of being replaced.
 - **A deleted note remains in Google:** this is intentional. Remote deletion is never inferred from a missing local file.
 - **The dedicated Google calendar was deleted:** sync stops instead of recreating it silently. Disconnect and connect again only if you want a new dedicated calendar.

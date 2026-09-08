@@ -1,4 +1,4 @@
-const relay = process.env.LINK_CALENDAR_GOOGLE_RELAY_URL?.trim() ?? "";
+import { googleRelayUrl as relay } from "./google-build-config.mjs";
 let relayUrl;
 try {
   relayUrl = new URL(relay);

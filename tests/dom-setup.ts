@@ -4,6 +4,7 @@ interface CreateOptions {
   attr?: Record<string, boolean | null | number | string>;
   cls?: string | string[];
   text?: DocumentFragment | string;
+  title?: string;
 }
 
 function applyOptions(element: HTMLElement, input: CreateOptions | string = {}): void {
@@ -11,6 +12,7 @@ function applyOptions(element: HTMLElement, input: CreateOptions | string = {}):
   if (options.cls) element.className = Array.isArray(options.cls) ? options.cls.join(" ") : options.cls;
   if (typeof options.text === "string") element.textContent = options.text;
   else if (options.text) element.append(options.text);
+  if (options.title !== undefined) element.title = options.title;
   for (const [name, value] of Object.entries(options.attr ?? {})) {
     if (value !== null) element.setAttribute(name, String(value));
   }

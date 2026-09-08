@@ -171,13 +171,7 @@ export class LinkCalendarView extends ItemView {
         this.navigateMonth(1);
       }),
     );
-    navigation.createEl("button", {
-      cls: "link-calendar__today",
-      text: translate(locale, "today"),
-      attr: { type: "button" },
-    }).addEventListener("click", () => {
-      this.showToday(true);
-    });
+    navigation.append(iconButton("calendar-check", translate(locale, "today"), () => this.showToday(true)));
     header.createEl("h1", {
       cls: "link-calendar__title",
       text: monthTitle(locale, this.month),
@@ -243,11 +237,17 @@ export class LinkCalendarView extends ItemView {
     help.createEl("summary", { text: translate(settings.locale, "exampleHelp") });
     const example = `- ${this.selectedDate} ${settings.locale === "ko" ? "예정 · 회의 준비" : "scheduled · Prepare meeting"}`;
     help.createEl("pre").createEl("code", { text: example });
-    const copy = help.createEl("button", { text: translate(settings.locale, "copyExample"), attr: { type: "button" } });
+    const copy = iconButton("copy", translate(settings.locale, "copyExample"), () => undefined);
+    help.append(copy);
+    const showCopyState = (icon: string, key: MessageKey) => {
+      setIcon(copy, icon);
+      copy.title = translate(settings.locale, key);
+      copy.setAttribute("aria-label", copy.title);
+    };
     copy.onclick = () => {
       void Promise.resolve().then(() => navigator.clipboard.writeText(example))
-        .then(() => copy.setText(translate(settings.locale, "exampleCopied")))
-        .catch(() => copy.setText(translate(settings.locale, "copyFailed")));
+        .then(() => showCopyState("check", "exampleCopied"))
+        .catch(() => showCopyState("triangle-alert", "copyFailed"));
     };
   }
 
@@ -597,15 +597,20 @@ export class LinkCalendarView extends ItemView {
       if (event.origin !== "profile" || mentions.length > 0) {
         const sources = identity.createDiv({ cls: "link-calendar__agenda-sources" });
         const canonical = sources.createDiv({ cls: "link-calendar__agenda-source-row" });
-        canonical.createSpan({
-          cls: "link-calendar__agenda-source-label",
-          text: translate(settings.locale, "canonicalNote"),
-        });
         const canonicalButton = canonical.createEl("button", {
-          text: fileTitle(event.filePath),
-          title: event.filePath,
-          attr: { type: "button" },
+          cls: "link-calendar__agenda-note-link",
+          title: `${translate(settings.locale, "open")}: ${event.filePath}`,
+          attr: {
+            type: "button",
+            "aria-label": `${translate(settings.locale, "open")}: ${fileTitle(event.filePath)}`,
+          },
         });
+        const noteIcon = canonicalButton.createSpan({
+          cls: "link-calendar__agenda-note-icon",
+          attr: { "aria-hidden": "true" },
+        });
+        setIcon(noteIcon, "link");
+        canonicalButton.createSpan({ text: fileTitle(event.filePath) });
         canonicalButton.onclick = () => void this.actions.open(event.filePath);
         if (mentions.length > 0) {
           const mentioned = sources.createDiv({ cls: "link-calendar__agenda-source-row" });
@@ -766,7 +771,7 @@ function diagnosticMessage(code: CalendarSnapshot["diagnostics"][number]["code"]
 function iconButton(icon: string, label: string, action: () => void): HTMLButtonElement {
   const button = createEl("button", { cls: "clickable-icon link-calendar__icon-button" });
   button.type = "button";
-  button.ariaLabel = label;
+  button.setAttribute("aria-label", label);
   button.title = label;
   setIcon(button, icon);
   button.addEventListener("click", action);

@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
+import { googleRelayUrl } from "./scripts/google-build-config.mjs";
 
 const production = process.argv[2] === "production";
-const googleRelayUrl = process.env.LINK_CALENDAR_GOOGLE_RELAY_URL ?? "";
 const context = await esbuild.context({
   entryPoints: ["src/main.ts"],
   bundle: true,

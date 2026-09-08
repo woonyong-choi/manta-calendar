@@ -204,7 +204,13 @@ describe("Link Calendar Navigator view", () => {
     const today = view.contentEl.querySelector<HTMLElement>('[role="gridcell"][aria-current="date"]');
     expect(today).not.toBeNull();
 
-    view.contentEl.querySelector<HTMLButtonElement>(".link-calendar__today")?.click();
+    today?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await settle();
+    expect(view.contentEl.querySelector('[role="gridcell"][aria-selected="true"]')?.getAttribute("aria-current"))
+      .not.toBe("date");
+    const todayButton = view.contentEl.querySelector<HTMLButtonElement>('button[aria-label="Today"]');
+    expect(todayButton).not.toBeNull();
+    todayButton?.click();
     await settle();
     expect(view.contentEl.querySelector('[role="gridcell"][aria-selected="true"]')?.getAttribute("aria-current"))
       .toBe("date");
@@ -259,11 +265,16 @@ describe("Link Calendar Navigator view", () => {
       ],
       title: "KRAFTON application",
     };
-    const { view } = await openView(snapshot({ events: [period] }));
+    const { view, actions: currentActions } = await openView(snapshot({ events: [period] }));
 
     view.revealPath(period.filePath);
 
-    expect(view.contentEl.textContent).toContain("Source note");
+    const noteLink = view.contentEl.querySelector<HTMLButtonElement>(".link-calendar__agenda-source-row button");
+    expect(noteLink?.getAttribute("aria-label")).toBe("Open note: Application");
+    expect(noteLink?.title).toBe("Open note: Career/Application.md");
+    expect(view.contentEl.textContent).not.toContain("Source note");
+    noteLink?.click();
+    expect(currentActions.open).toHaveBeenCalledWith("Career/Application.md");
     expect(view.contentEl.textContent).toContain("Mentioned in 2 notes");
     expect(view.contentEl.querySelectorAll(".link-calendar__agenda-source-row button"))
       .toHaveLength(3);

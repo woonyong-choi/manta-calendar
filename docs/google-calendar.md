@@ -65,7 +65,7 @@ Required Worker configuration:
 
 `PUBLIC_BASE_URL` and `LINK_CALENDAR_GOOGLE_RELAY_URL` must be the same exact HTTPS origin, with no path, query, or fragment. Register `${PUBLIC_BASE_URL}/oauth/callback` as the exact Google web OAuth redirect. Never put the Google client secret or state secret into the plugin bundle.
 
-The GitHub repository variable `LINK_CALENDAR_GOOGLE_RELAY_URL` supplies the same public origin to CI and release builds. The release verifier rejects empty, local, example, credential-bearing, query-bearing, or mismatched relay URLs before an asset can be published.
+Builds derive the public origin from the versioned custom domain in `oauth-worker/wrangler.jsonc`, so `npm ci && npm run build` reproduces the official plugin without repository variables. Custom development builds can override `LINK_CALENDAR_GOOGLE_RELAY_URL` (an empty value disables the integration). Official release verification requires the versioned origin and rejects empty, local, example, credential-bearing, query-bearing, or mismatched relay URLs before an asset can be published. OAuth secrets remain outside the plugin source and bundle.
 
 The Worker also serves the OAuth application's public homepage at `/` and privacy policy at `/privacy`. Keep those pages aligned with `README.md` and `PRIVACY.md`; their tests are part of `npm run test:oauth`.
 
