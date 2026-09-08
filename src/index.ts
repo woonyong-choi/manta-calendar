@@ -344,17 +344,18 @@ function isAutomaticSourcePath(path: string): boolean {
     part.startsWith(".") || isReferenceArchiveSegment(part));
 }
 
+const REFERENCE_ARCHIVE_SEGMENTS = new Set([
+  "_sources",
+  "archive",
+  "archives",
+  "backup",
+  "backups",
+  "legacy-backup",
+  "retired",
+]);
+
 function isReferenceArchiveSegment(part: string): boolean {
-  const archiveSegments = new Set([
-    "_sources",
-    "archive",
-    "archives",
-    "backup",
-    "backups",
-    "legacy-backup",
-    "retired",
-  ]);
-  return archiveSegments.has(part.toLocaleLowerCase());
+  return REFERENCE_ARCHIVE_SEGMENTS.has(part.toLocaleLowerCase());
 }
 
 function mergeTemporalEvents(events: CalendarEvent[]): CalendarEvent[] {
