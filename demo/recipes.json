@@ -8,9 +8,9 @@
     "frameDuration": 2.0,
     "fadeDuration": 0.25,
     "frames": [
-      "captures/frames/01-markdown-source.png",
-      "captures/frames/02-text-month.png",
-      "captures/frames/03-agenda.png"
+      "captures/frames/01-empty-example.png",
+      "../docs/media/link-calendar-overview.png",
+      "../docs/media/link-calendar-agenda.png"
     ]
   }
 ]

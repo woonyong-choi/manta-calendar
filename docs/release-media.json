@@ -1,26 +1,32 @@
 {
   "version": "3.6.0",
-  "capturedWith": "Obsidian 1.13.7 styles in deterministic public release fixture",
-  "capturedAt": "2026-09-04",
+  "capturedWith": "Obsidian 1.13.7 native app screenshots; 16:9 padding, no UI reconstruction",
+  "capturedAt": "2026-09-08",
   "publicSafeSample": true,
   "assets": [
     {
       "path": "docs/media/link-calendar-demo.gif",
       "width": 1600,
       "height": 900,
-      "sha256": "9a3935c610b8b29489c9aa2bd5f72799a320c80136adb0de0961c6e5bd516629"
+      "sha256": "e173c12420189fa4b9e20ddfb1e04ceafe2e270cf3cbd9b30b4f00fc26d0a47d"
     },
     {
       "path": "docs/media/link-calendar-overview.png",
-      "width": 1600,
-      "height": 900,
-      "sha256": "79be78036c194550d59d6c41d6eeb05f94c7f97f9acde3033a6a99d216633b0d"
+      "width": 1984,
+      "height": 1116,
+      "sha256": "5abde61337b593f404f2aa36b862a9c844b439556df1f1fafb3076e041e7180a"
     },
     {
       "path": "docs/media/link-calendar-agenda.png",
-      "width": 1600,
-      "height": 900,
-      "sha256": "550dfda2abd85b8be466c209ffd1e02f30c2f780d051dbe75137197cb6b3ffc5"
+      "width": 1984,
+      "height": 1116,
+      "sha256": "7b4617cfc639b549fdb039c34146213e14408bab7b787f5690c90815c4c5a273"
     }
+  ],
+  "sourceCommit": "fcbe225",
+  "scenarios": [
+    "Empty month with copyable date example",
+    "Recognized date in month view",
+    "Selected-day panel with source note link"
   ]
 }

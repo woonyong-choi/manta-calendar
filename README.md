@@ -17,9 +17,9 @@ Link Calendar Navigator finds explicit dates, periods, history entries, and dead
 
 ![Link Calendar Navigator moving from Markdown dates to a readable month, daily agenda, optional dedicated Google calendar, and idempotent sync result](docs/media/link-calendar-demo.gif)
 
-Illustrative release fixture captured on September 4, 2026. It demonstrates the timeline and optional sync flow; it is not a recording of the latest connection-recovery UI or a live OAuth verification.
+Captured in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
 
-![Link Calendar Navigator showing compact one-line timeline entries in a sharp 16:9 release fixture](docs/media/link-calendar-overview.png)
+![Link Calendar Navigator showing a dated note in the actual Obsidian month view](docs/media/link-calendar-overview.png)
 
 <p align="center">
   <a href="obsidian://show-plugin?id=link-calendar">Add to Obsidian</a>
