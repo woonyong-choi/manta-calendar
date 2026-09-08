@@ -566,21 +566,22 @@ export class LinkCalendarView extends ItemView {
       text: formatMessage(settings.locale, "eventsOnDate", { count: String(events.length) }),
     });
     for (const event of events) {
+      const time = formatEventTimeRange(event, settings);
       const item = agenda.createDiv({
-        cls: `link-calendar__agenda-item${event.id === this.selectedEventId ? " is-active" : ""}`,
+        cls: `link-calendar__agenda-item${time ? " has-time" : ""}${event.id === this.selectedEventId ? " is-active" : ""}`,
       });
-      item.createEl("time", {
+      if (time) item.createEl("time", {
         cls: "link-calendar__agenda-time",
-        text: formatEventTimeRange(event, settings),
+        text: time,
       });
       const identity = item.createDiv({ cls: "link-calendar__agenda-identity" });
-      identity.createDiv({
+      const heading = identity.createDiv({ cls: "link-calendar__agenda-heading" });
+      heading.createDiv({
         cls: `link-calendar__agenda-kind is-kind-${event.kind}`,
         text: translate(settings.locale, temporalKindMessage(event.kind)),
       });
-      const link = identity.createEl("a", {
+      const link = heading.createEl("a", {
         cls: "link-calendar__agenda-link internal-link",
-        text: event.title,
         title: `${translate(settings.locale, "open")}: ${event.title}`,
         attr: {
           "aria-label": `${translate(settings.locale, "open")}: ${event.title}`,
@@ -588,13 +589,16 @@ export class LinkCalendarView extends ItemView {
           href: event.filePath,
         },
       });
+      const icon = link.createSpan({ cls: "link-calendar__agenda-note-icon", attr: { "aria-hidden": "true" } });
+      setIcon(icon, "file-text");
+      link.createSpan({ cls: "link-calendar__agenda-title", text: event.title });
       link.onclick = (mouseEvent) => {
         mouseEvent.preventDefault();
         void this.actions.open(event.filePath);
       };
       const sourcePaths = [...new Set(event.sources.map((source) => source.filePath))];
       const mentions = sourcePaths.filter((sourcePath) => sourcePath !== event.filePath);
-      if (event.origin !== "profile" || mentions.length > 0) {
+      if ((event.origin !== "profile" && event.title !== fileTitle(event.filePath)) || mentions.length > 0) {
         const sources = identity.createDiv({ cls: "link-calendar__agenda-sources" });
         const canonical = sources.createDiv({ cls: "link-calendar__agenda-source-row" });
         const canonicalButton = canonical.createEl("button", {
@@ -609,7 +613,7 @@ export class LinkCalendarView extends ItemView {
           cls: "link-calendar__agenda-note-icon",
           attr: { "aria-hidden": "true" },
         });
-        setIcon(noteIcon, "link");
+        setIcon(noteIcon, "file-text");
         canonicalButton.createSpan({ text: fileTitle(event.filePath) });
         canonicalButton.onclick = () => void this.actions.open(event.filePath);
         if (mentions.length > 0) {

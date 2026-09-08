@@ -66,12 +66,16 @@
 
 .link-calendar__agenda-item {
   display: grid;
-  grid-template-columns: minmax(var(--cc-calendar-agenda-time-min), 0.34fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--cc-space-4);
   min-width: 0;
   padding: var(--cc-space-4) 0;
   border-bottom: var(--cc-calendar-grid-line) solid var(--cc-separator);
   background: transparent;
+}
+
+.link-calendar__agenda-item.has-time {
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .link-calendar__agenda-time {
@@ -91,12 +95,22 @@
 }
 
 .link-calendar__agenda-kind {
-  margin-bottom: var(--cc-space-1);
+  order: 2;
+  flex-shrink: 0;
+  white-space: nowrap;
   color: var(--cc-text-tertiary);
   font-size: var(--cc-font-xs);
   font-weight: var(--cc-weight-semibold);
   letter-spacing: var(--cc-letter-wide);
   text-transform: uppercase;
+}
+
+.link-calendar__agenda-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-space-2);
+  width: 100%;
+  min-width: 0;
 }
 
 .link-calendar__agenda-sources {
@@ -146,20 +160,31 @@
 }
 
 .link-calendar__agenda-note-icon svg {
-  width: 1em;
-  height: 1em;
+  width: var(--cc-space-4);
+  height: var(--cc-space-4);
+  stroke-width: 1.75;
 }
 
 .link-calendar a.link-calendar__agenda-link {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cc-space-2);
+  min-width: 0;
   width: fit-content;
   max-width: 100%;
   overflow: hidden;
-  color: var(--cc-accent);
+  color: var(--cc-text-primary);
   font-size: var(--cc-font-md);
   font-weight: var(--cc-weight-semibold);
   line-height: var(--cc-line-height);
-  border-bottom: var(--cc-calendar-grid-line) solid currentColor;
+  border-bottom: 0;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-calendar__agenda-title {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
