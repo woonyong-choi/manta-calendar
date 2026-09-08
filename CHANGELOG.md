@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 3.6.1
+
+- Align agenda titles, metadata, source-note icons, and keyboard navigation.
+- Improve empty-state examples and connection recovery; reproduce the official relay build from versioned configuration.
+- Honor explicit `external_sync: deny` without blocking selected read-only/local-only notes or deleting existing Google mappings.
+- Refresh native demo media and run view tests once; make coverage optional.
+
+## Unreleased — separate OAuth relay deployment
 
 - Replace the fragile one-shot OAuth callback redirect with a no-store completion page that attempts to reopen Obsidian and offers an explicit, localized **Open Obsidian** recovery action when the browser requires a user gesture.
 - Preserve the signed PKCE state, fixed protocol destination, least-privilege Google scope, and no-storage relay boundary while adding light/dark browser presentation and callback regression coverage.

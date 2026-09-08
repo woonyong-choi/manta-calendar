@@ -1,5 +1,5 @@
 {
-  "version": "3.6.0",
+  "version": "3.6.1",
   "capturedWith": "Obsidian 1.13.7 native app screenshots; 16:9 padding, no UI reconstruction",
   "capturedAt": "2026-09-08",
   "publicSafeSample": true,
@@ -28,5 +28,6 @@
     "Empty month with copyable date example",
     "Recognized date in month view",
     "Selected-day panel with source note link"
-  ]
+  ],
+  "capturedVersion": "3.6.0"
 }

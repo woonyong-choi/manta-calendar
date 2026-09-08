@@ -12,6 +12,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
+  actions: read
   attestations: write
   contents: write
   id-token: write
@@ -25,8 +26,17 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Require successful CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&status=completed&per_page=1" --jq ' .workflow_runs[0].conclusion')"
+          test "$conclusion" = success
       - run: npm ci
-      - run: npm run verify:release
+      - run: npm run build
+      - run: LINK_CALENDAR_REQUIRE_GOOGLE_RELAY=1 node scripts/verify-google-build.mjs
+      - run: node scripts/verify-release.mjs
+      - run: npm run verify:relay
       - name: Require main branch
         if: github.ref != 'refs/heads/main'
         run: |
