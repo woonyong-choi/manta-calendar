@@ -132,28 +132,28 @@ describe("Google Calendar API boundary", () => {
 });
 
 describe("one-way Google synchronization", () => {
-  it("excludes local-only events while preserving mappings and repeat idempotency", async () => {
+  it("honors explicit sync denial while allowing selected read-only local notes", async () => {
     const requests: GoogleHttpRequest[] = [];
     const api = client((request) => {
       requests.push(request);
       return { json: { etag: "etag-1", id: "remote-id" }, status: 200 };
     });
-    const restricted = { ...event({ filePath: "Calendar/Private.md" }), access: "local-only" };
+    const restricted = { ...event({ filePath: "Calendar/Private.md" }), externalSync: "deny" };
     const existing: GoogleSyncRecord = {
       calendarId: calendar.id, etag: "private-etag", eventId: "private-remote",
       fingerprint: "old", localKey: "profile\u0000Calendar/Private.md",
     };
     const input = {
-      calendar, client: api, defaultDurationMinutes: 60, events: [event(), restricted],
+      calendar, client: api, defaultDurationMinutes: 60, events: [{ ...event(), access: "local-only" }, restricted],
       installationId: "installation", records: [existing], sourceProfileIds: ["profile"],
     };
     const first = await syncGoogleCalendar(input);
-    expect(first).toMatchObject({ created: 1, localOnlyExcluded: 1 });
+    expect(first).toMatchObject({ created: 1, syncDenied: 1 });
     expect(first.records[0]).toEqual(existing);
     expect(requests).toHaveLength(1);
     expect(requests[0]?.body).not.toContain("Private");
     const second = await syncGoogleCalendar({ ...input, records: first.records });
-    expect(second).toMatchObject({ created: 0, skipped: 1, localOnlyExcluded: 1 });
+    expect(second).toMatchObject({ created: 0, skipped: 1, syncDenied: 1 });
     expect(second.records).toEqual(first.records);
     expect(requests).toHaveLength(1);
   });

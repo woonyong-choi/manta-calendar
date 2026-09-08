@@ -42,7 +42,7 @@ export interface GoogleEventPayload {
 }
 
 export interface GoogleSyncResult {
-  localOnlyExcluded: number;
+  syncDenied: number;
   conflicts: { localKey: string; reason: string }[];
   created: number;
   failed: { localKey: string; reason: string }[];
@@ -158,11 +158,11 @@ export async function syncGoogleCalendar(input: {
 }): Promise<GoogleSyncResult> {
   const sourceIds = new Set(input.sourceProfileIds);
   const selected = input.events.filter((event) => event.origin === "profile" && sourceIds.has(event.profileId));
-  const events = selected.filter((event) => event.access !== "local-only");
+  const events = selected.filter((event) => event.externalSync !== "deny");
   const records = input.records.map((record) => ({ ...record }));
   const byKey = new Map(records.map((record, index) => [recordKey(record.localKey, record.calendarId), index]));
   const result: GoogleSyncResult = {
-    localOnlyExcluded: selected.length - events.length,
+    syncDenied: selected.length - events.length,
     conflicts: [],
     created: 0,
     failed: [],

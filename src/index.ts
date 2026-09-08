@@ -176,7 +176,7 @@ export class CalendarIndex {
     this.notes.set(file.path, {
       diagnostic: null,
       event: {
-        access: stringField(frontmatter, "access"),
+        externalSync: stringField(frontmatter, "external_sync"),
         allDay,
         category,
         editable: profile.editable && writableProfile?.id === profile.id,

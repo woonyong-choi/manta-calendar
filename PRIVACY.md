@@ -10,7 +10,7 @@ Link Calendar Navigator is an open-source Obsidian plugin. Its calendar index ru
 
 The integration requests only `https://www.googleapis.com/auth/calendar.app.created`. This permission lets the plugin create a dedicated **Link Calendar** secondary calendar and create, read, or update events in calendars created by this application. It does not grant access to a user's primary calendar or unrelated calendars.
 
-Notes with `access: local-only` are excluded even when their source is selected for sync. Existing mappings and previously created remote events are preserved when a note becomes local-only. Read-only editing does not itself prohibit external sync.
+Notes with `external_sync: deny` are excluded even when their source is selected for sync. Existing mappings and previously created remote events are preserved when sending a note is prohibited. Read-only editing and `access: local-only` do not prohibit a sync explicitly enabled through source selection.
 
 During an explicit sync, the plugin sends only the title, start, and end of events from folder sources the user selected. It also writes private ownership identifiers used to make retries deterministic and prevent cross-event overwrites. Note bodies, unrelated notes, guests, contacts, and existing calendar events are not sent.
 

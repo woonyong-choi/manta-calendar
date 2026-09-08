@@ -390,7 +390,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
       google.records = result.records;
       await this.saveSettings();
       new Notice(formatMessage(this.settings.locale, "googleSyncSummary", {
-        localOnlyExcluded: String(result.localOnlyExcluded),
+        syncDenied: String(result.syncDenied),
         conflicts: String(result.conflicts.length),
         created: String(result.created),
         failed: String(result.failed.length),

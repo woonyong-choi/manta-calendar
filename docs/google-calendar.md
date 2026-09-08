@@ -8,7 +8,7 @@ Link Calendar's Google integration is a narrow, optional projection for notifica
 2. Enable Google Calendar in plugin settings.
 3. Select **Connect Google Calendar** and approve the single requested permission in the browser.
 4. The callback tries to reopen Obsidian automatically. If the browser blocks the app link, select **Open Obsidian** on the completion page.
-5. Enable one or more source mappings to allow sending their events. Read-only editing is a separate setting; notes marked `access: local-only` are always excluded.
+5. Enable one or more source mappings to allow sending their events. Read-only editing and `access: local-only` are separate settings. An explicit `external_sync: deny` prevents sending a selected note.
 6. Select **Sync now**.
 
 The plugin creates one dedicated secondary calendar named **Link Calendar**. No Google developer credentials are required from end users.
@@ -19,7 +19,7 @@ The plugin creates one dedicated secondary calendar named **Link Calendar**. No 
 | --- | --- |
 | Direction | Configured Markdown source → Google |
 | Trigger | Explicit **Sync now** command |
-| Included | Events from selected configured folder profiles, excluding notes marked `access: local-only` |
+| Included | Events from selected configured folder profiles, excluding notes marked `external_sync: deny` |
 | Excluded | Automatic body-index events, primary calendar, unrelated calendars, guests |
 | Created fields | Summary, start, end, private ownership marker |
 | Reminders | New events use that calendar's default reminders; later remote reminder changes are preserved |
