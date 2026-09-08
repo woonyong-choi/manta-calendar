@@ -57,6 +57,8 @@ Google Calendar integration is off by default. When you enable it, one **Connect
 
 The first release is deliberately one-way: **configured Markdown source → dedicated Google calendar**. It creates or updates only events previously created by this plugin. Existing calendars, unrelated events, guests, and remote descriptions are outside its write boundary. Deleting a note never authorizes a remote deletion, and a Google-side edit stops a later overwrite as a conflict.
 
+Source selection explicitly permits sending events, independently of whether the source is editable. Notes with `access: local-only` are always excluded and counted in the sync summary. Excluding a note preserves its existing mapping and does not delete an earlier Google event.
+
 The dedicated calendar appears in Google Calendar on desktop and mobile, so its normal notifications remain available even when Obsidian is closed. Obsidian must be open when you run a sync; this release does not claim background or two-way synchronization.
 
 Only the narrow `calendar.app.created` permission is requested. Refresh tokens stay in Obsidian `SecretStorage`; note bodies are not sent to the OAuth relay. See [Google Calendar privacy and security](docs/google-calendar.md) and the [privacy policy](PRIVACY.md).

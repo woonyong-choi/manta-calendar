@@ -99,6 +99,16 @@ function folderTree(files: TFile[]): Map<string, TFolder> {
 }
 
 describe("CalendarIndex", () => {
+  it("keeps local-only access independent from edit permission", () => {
+    const { caches, metadataCache, profile, vault } = fixture();
+    const cached = caches.get("Calendar/Alpha.md");
+    if (!cached) throw new Error("missing calendar fixture");
+    cached.frontmatter.access = "local-only";
+    const index = new CalendarIndex(vault as never, metadataCache as never, [profile]);
+    index.rebuild();
+    expect(index.snapshot().events[0]).toMatchObject({ editable: true, access: "local-only" });
+  });
+
   it("indexes mapped properties, links, and diagnostics once", () => {
     const { metadataCache, profile, vault } = fixture();
     const index = new CalendarIndex(vault as never, metadataCache as never, [profile]);

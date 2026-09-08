@@ -65,6 +65,7 @@ export interface TemporalSource {
 }
 
 export interface CalendarEvent {
+  access?: string;
   allDay: boolean;
   category: string;
   editable: boolean;
