@@ -8,22 +8,22 @@
       "path": "docs/media/link-calendar-demo.gif",
       "width": 1600,
       "height": 900,
-      "sha256": "e173c12420189fa4b9e20ddfb1e04ceafe2e270cf3cbd9b30b4f00fc26d0a47d"
+      "sha256": "ee6138b7053b7823c994bc44254789ee1fbb0412ac38757421d829e9a19ef87b"
     },
     {
       "path": "docs/media/link-calendar-overview.png",
       "width": 1984,
       "height": 1116,
-      "sha256": "5abde61337b593f404f2aa36b862a9c844b439556df1f1fafb3076e041e7180a"
+      "sha256": "8d3e51cbecf7311f89ce1a8bd97f47fab9165f0e3b51c2a4b87ef1d186967ca6"
     },
     {
       "path": "docs/media/link-calendar-agenda.png",
       "width": 1984,
       "height": 1116,
-      "sha256": "7b4617cfc639b549fdb039c34146213e14408bab7b787f5690c90815c4c5a273"
+      "sha256": "45d8b7690cd1a3e4d1a25d004e31b391379513d7a44003fbb09c62a105596e91"
     }
   ],
-  "sourceCommit": "fcbe225",
+  "sourceCommit": "e55a654",
   "scenarios": [
     "Empty month with copyable date example",
     "Recognized date in month view",

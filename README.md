@@ -100,13 +100,12 @@ Link Calendar Navigator uses one stable identity:
 canonical target + start date + end date + temporal kind
 ```
 
-Matching entries become one calendar item. The selected-day panel uses a link icon beside the source note title and lists other notes that mention it:
+Matching entries become one calendar item. The selected-day panel puts a document icon and the event kind beside the title. It omits an identical source-note label and lists other notes that mention the item:
 
 ```text
 KRAFTON AI Engineer intern application
 2026-08-02 → 2026-08-27
 
-[link icon] KRAFTON AI Engineer intern application
 Mentioned in 4 notes
 ```
 
@@ -125,7 +124,7 @@ Month navigation keeps the selected day and agenda synchronized. Multi-day perio
 ## Navigation and accessibility
 
 - Select a day or event title to open the agenda.
-- Select an underlined title to open the source note.
+- Select the title beside the document icon to open the source note.
 - Press `Cmd/Ctrl + Enter` on a focused event title to open its note directly.
 - Use arrow keys to move the selected day; `Enter` or `Space` opens its agenda.
 - Press `Escape` to close the agenda and restore focus.
