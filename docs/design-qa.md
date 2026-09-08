@@ -1,9 +1,11 @@
 # Link Calendar Navigator design QA
 
-## Evidence
+> Historical review below predates the current onboarding, selection, and connection-recovery changes. It is not acceptance evidence for the current candidate.
 
-- Dark public-safe fixture at 1240×620: `docs/media/link-calendar-overview.png`
-- Light public-safe fixture at 1240×620: `docs/media/link-calendar-agenda.png`
+## Historical evidence
+
+- Dark public-safe fixture, now stored at 1600×900: `docs/media/link-calendar-overview.png`
+- Light public-safe fixture, now stored at 1600×900: `docs/media/link-calendar-agenda.png`
 - Obsidian 1.13.7 dark runtime at 1115×768 with 2026-08-29 selected
 - Obsidian 1.13.7 public demo onboarding: selecting `Calendar` found 7 Markdown documents, detected `date`, and previewed the exact 5 documents that would appear before saving the read-only source
 - Local-only 2480×565 side-by-side comparison with the supplied 1487×1059 product reference
@@ -39,4 +41,9 @@
 3. Replaced agenda cards with `time → canonical note link` rows and moved all times to compact 24-hour ranges.
 4. Removed the ambiguous arrow icon and made the visible agenda title the direct internal link.
 
-final result: passed
+Historical review result: passed. Current candidate runtime: not verified.
+
+
+## Current candidate runtime smoke
+
+Use the separate public test Vault. Copy the empty-state dated example into a test note, select its day and open the original note. Confirm today and selected day remain distinguishable. Navigate with keyboard, close the agenda with Escape and verify restored focus. Check light/dark and a narrow sidebar. Test connection waiting, callback, cancellation and expiration with a configured OAuth relay before claiming recovery. Capture fresh images and update release-media only after observing those states. DOM fixtures and configuration-enabled status do not prove runtime load.

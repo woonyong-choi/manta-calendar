@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <strong>See the dates you already wrote. Send only the sources you choose to Google Calendar for reminders.</strong>
+  <strong>Find dated notes in a calendar. Open the original with one click.</strong>
 </p>
 
 Link Calendar Navigator finds explicit dates, periods, history entries, and deadlines already written in active Markdown bodies. Select a day to open the canonical note or inspect every note that mentioned the same timeline item. Dates from configured calendar-note folders can appear beside them without changing Markdown ownership.
@@ -17,7 +17,7 @@ Link Calendar Navigator finds explicit dates, periods, history entries, and dead
 
 ![Link Calendar Navigator moving from Markdown dates to a readable month, daily agenda, optional dedicated Google calendar, and idempotent sync result](docs/media/link-calendar-demo.gif)
 
-The public-safe 16:9 walkthrough shows the whole boundary: Markdown timeline, canonical-note agenda, opt-in `Link Calendar` destination, and a repeat sync that leaves seven unchanged events untouched.
+Illustrative release fixture captured on September 4, 2026. It demonstrates the timeline and optional sync flow; it is not a recording of the latest connection-recovery UI or a live OAuth verification.
 
 ![Link Calendar Navigator showing compact one-line timeline entries in a sharp 16:9 release fixture](docs/media/link-calendar-overview.png)
 
