@@ -198,7 +198,7 @@ For a manual release install, download `main.js`, `manifest.json`, and `styles.c
 
 ## Support and development
 
-- Read the [changelog](CHANGELOG.md), [roadmap](ROADMAP.md), and [design QA](docs/design-qa.md).
+- Read the [changelog](CHANGELOG.md), [roadmap](ROADMAP.md), and [contributor checks](CONTRIBUTING.md).
 - Report a [bug or use case](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/issues/new/choose).
 - Review the [contributing guide](CONTRIBUTING.md) and [security policy](SECURITY.md).
 
@@ -207,7 +207,7 @@ npm ci
 npm run verify
 ```
 
-`npm run verify` runs TypeScript, Obsidian lint, unused-code analysis, plugin and OAuth relay tests, DOM tests with coverage, visual-fixture checks, a production build, and release-policy validation.
+`npm run verify` runs TypeScript, Obsidian lint, unused-code analysis, plugin and OAuth relay tests, DOM tests (run once), visual-fixture checks, a production build, and release-policy validation. Coverage is available separately with `npm run test:coverage`.
 
 ## 한국어 요약
 

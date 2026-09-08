@@ -10,12 +10,13 @@
     "check": "tsc --noEmit && npm run lint:obsidian",
     "knip": "knip",
     "lint:obsidian": "eslint src tests",
-    "test": "vitest run --coverage",
+    "test": "vitest run",
     "test:oauth": "npm --prefix oauth-worker test",
-    "test:visual": "vitest run tests/view.test.ts tests/presentation.test.ts && node scripts/verify-visual-fixture.mjs",
+    "test:visual": "node scripts/verify-visual-fixture.mjs",
     "verify": "npm run check && npm run knip && npm test && npm run test:oauth && npm run test:visual && npm run build && node scripts/verify-google-build.mjs && node scripts/verify-release.mjs",
     "verify:relay": "node scripts/verify-google-relay.mjs",
-    "verify:release": "LINK_CALENDAR_REQUIRE_GOOGLE_RELAY=1 npm run verify && npm run verify:relay"
+    "verify:release": "LINK_CALENDAR_REQUIRE_GOOGLE_RELAY=1 npm run verify && npm run verify:relay",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "obsidian",
@@ -33,7 +34,10 @@
     "node": ">=20"
   },
   "knip": {
-    "ignoreBinaries": ["ffmpeg", "ffprobe"],
+    "ignoreBinaries": [
+      "ffmpeg",
+      "ffprobe"
+    ],
     "entry": [
       "scripts/*.mjs"
     ],
