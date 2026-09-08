@@ -263,7 +263,7 @@ describe("Link Calendar Navigator view", () => {
 
     view.revealPath(period.filePath);
 
-    expect(view.contentEl.textContent).toContain("Canonical note");
+    expect(view.contentEl.textContent).toContain("Source note");
     expect(view.contentEl.textContent).toContain("Mentioned in 2 notes");
     expect(view.contentEl.querySelectorAll(".link-calendar__agenda-source-row button"))
       .toHaveLength(3);

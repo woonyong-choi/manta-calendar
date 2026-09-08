@@ -11,7 +11,7 @@
   <strong>Find dated notes in a calendar. Open the original with one click.</strong>
 </p>
 
-Link Calendar Navigator finds explicit dates, periods, history entries, and deadlines already written in active Markdown bodies. Select a day to open the canonical note or inspect every note that mentioned the same timeline item. Dates from configured calendar-note folders can appear beside them without changing Markdown ownership.
+Link Calendar Navigator finds explicit dates, periods, history entries, and deadlines already written in active Markdown bodies. Select a day to open the source note or inspect every note that mentioned the same timeline item. Dates from configured calendar-note folders can appear beside them without changing Markdown ownership.
 
 **Markdown → automatic timeline → original note.** Optional sync adds **selected source → dedicated Google calendar** without changing the source of truth.
 
@@ -32,8 +32,8 @@ Illustrative release fixture captured on September 4, 2026. It demonstrates the 
 ## Why it feels different
 
 - **Zero-setup timeline:** explicit timeline entries in active Markdown bodies are indexed automatically.
-- **Markdown stays canonical:** the index is derived in memory; notes are never copied into a plugin database.
-- **One item, all sources:** repeated mentions collapse into one timeline item with canonical and mentioning-note links.
+- **Your notes remain the source:** the index is derived in memory; notes are never copied into a plugin database.
+- **One item, all sources:** repeated mentions collapse into one timeline item with source-note and mentioning-note links.
 - **Low-noise by default:** file timestamps, maintenance properties, and arbitrary prose dates never become events.
 - **Read-only automation:** automatic results cannot rewrite source notes.
 - **Optional controlled writing:** folder profiles can explicitly allow note creation and conflict-checked date moves.
@@ -43,7 +43,7 @@ Illustrative release fixture captured on September 4, 2026. It demonstrates the 
 
 1. Install **Link Calendar Navigator** from **Settings → Community plugins**.
 2. Run **Open Link Calendar Navigator** or select the calendar ribbon icon.
-3. Move between months, select an event title, and open its canonical Markdown.
+3. Move between months, select an event title, and open its source Markdown note.
 
 If the month is empty, expand the example help and copy a dated list entry into a note. Automatic indexing recognizes explicit body dates; frontmatter dates require a configured source. Folder setup is optional and is needed only when you want a custom property mapping or explicitly writable calendar notes.
 
@@ -100,13 +100,13 @@ Link Calendar Navigator uses one stable identity:
 canonical target + start date + end date + temporal kind
 ```
 
-Matching entries become one calendar item. The selected-day panel shows the canonical note separately from the unique notes that mention it:
+Matching entries become one calendar item. The selected-day panel shows the source note separately from the unique notes that mention it:
 
 ```text
 KRAFTON AI Engineer intern application
 2026-08-02 → 2026-08-27
 
-Canonical note: KRAFTON AI Engineer intern application
+Source note: KRAFTON AI Engineer intern application
 Mentioned in 4 notes
 ```
 
@@ -116,7 +116,7 @@ Aliases and relative wikilinks resolve through Obsidian's metadata cache. Hidden
 
 1. **Scan a month.** Compact one-line titles identify events, periods, history, and deadlines.
 2. **Choose a day.** The agenda lists every item overlapping that date.
-3. **Open the evidence.** Select the title for the canonical note, or a provenance link for a mentioning note.
+3. **Open the evidence.** Select the title for the source note, or a provenance link for a mentioning note.
 
 ![Link Calendar Navigator daily agenda](docs/media/link-calendar-agenda.png)
 
@@ -125,7 +125,7 @@ Month navigation keeps the selected day and agenda synchronized. Multi-day perio
 ## Navigation and accessibility
 
 - Select a day or event title to open the agenda.
-- Select an underlined title to open the canonical note.
+- Select an underlined title to open the source note.
 - Press `Cmd/Ctrl + Enter` on a focused event title to open its note directly.
 - Use arrow keys to move the selected day; `Enter` or `Space` opens its agenda.
 - Press `Escape` to close the agenda and restore focus.
@@ -180,7 +180,7 @@ Removing the plugin leaves every Markdown note and property intact.
 
 - **A date is missing:** use one of the explicit Markdown forms above or map the note folder as a calendar source. Dates in prose, code, quotes, URLs, comments, hidden paths, and archive/reference folders are intentionally ignored.
 - **A maintenance date is missing:** this is intentional. `created`, `updated`, filesystem timestamps, and similar bookkeeping fields are not automatic events.
-- **Repeated entries:** make each mention link to the same canonical note and use the same start, end, and temporal kind.
+- **Repeated entries:** make each mention link to the same source note and use the same start, end, and temporal kind.
 - **Create or drag is unavailable:** automatic items are read-only; enable a valid writable folder profile for mutations.
 - **A move was rejected:** the Markdown changed after indexing or no longer matches the configured source.
 - **Search shows no results:** clear the query and source filters to restore the month.
@@ -210,7 +210,7 @@ npm run verify
 
 ## 한국어 요약
 
-Link Calendar Navigator는 활성 Markdown 전체의 일정·기간·이력·마감을 자동으로 월간 시간축에 모읍니다. 같은 정본 링크와 기간이 반복되면 하나로 합치고, 상세 패널에서 정본과 언급 문서를 분리해 보여 줍니다. Markdown이 유일한 정본이며 자동 색인은 읽기 전용입니다. 선택 사항인 Google Calendar 연결은 기본적으로 꺼져 있고, 사용자가 고른 폴더 소스만 전용 Link Calendar로 단방향 동기화합니다.
+Link Calendar Navigator는 활성 Markdown 전체의 일정·기간·이력·마감을 자동으로 월간 시간축에 모읍니다. 같은 원본 노트와 기간을 가리키는 항목은 하나로 합치고, 상세 패널에서 원본 노트와 이를 언급한 노트를 함께 열 수 있습니다. 자동 색인은 노트를 읽기만 하며 별도 복사본을 만들지 않습니다. 선택 사항인 Google Calendar 연결은 기본적으로 꺼져 있고, 사용자가 고른 폴더 소스만 전용 Link Calendar로 단방향 동기화합니다.
 
 ## License
 
