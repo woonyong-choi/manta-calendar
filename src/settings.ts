@@ -129,6 +129,7 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
     if (key === "timeFormat") return this.host.settings.timeFormat;
     if (key === "autoIndexDates") return this.host.settings.autoIndexDates;
     if (key === "googleEnabled") return this.host.settings.googleCalendar.enabled;
+    if (key === "googleIncomingProfile") return this.host.settings.googleCalendar.incomingProfileId ?? "";
     if (key === "googleDefaultDuration") {
       return String(this.host.settings.googleCalendar.defaultDurationMinutes);
     }
@@ -151,6 +152,10 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
       return;
     } else if (key === "googleEnabled" && typeof value === "boolean") {
       this.host.settings.googleCalendar.enabled = value;
+    } else if (key === "googleIncomingProfile" && typeof value === "string"
+      && (!value || this.host.settings.profiles.some(profile => profile.id === value && profile.enabled && profile.editable))) {
+      this.host.settings.googleCalendar.incomingProfileId = value;
+      if (value && !this.host.settings.googleCalendar.sourceProfileIds.includes(value)) this.host.settings.googleCalendar.sourceProfileIds.push(value);
     } else if (key === "googleDefaultDuration"
       && (value === "15" || value === "30" || value === "60" || value === "90")) {
       this.host.settings.googleCalendar.defaultDurationMinutes = Number(value);
@@ -274,6 +279,14 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
     items.push({
       name: translate(locale, "googleSyncNow"),
       action: () => { void this.host.syncGoogleCalendar().then(() => this.update()); },
+    });
+    items.splice(items.length - 1, 0, {
+      name: translate(locale, "googleIncomingProfile"),
+      desc: translate(locale, "googleIncomingProfileDesc"),
+      control: { type: "dropdown", key: "googleIncomingProfile", options: {
+        "": translate(locale, "googleOutgoingOnly"),
+        ...Object.fromEntries(this.host.settings.profiles.filter(profile => profile.enabled && profile.editable).map(profile => [profile.id, profile.name])),
+      } },
     });
     return items;
   }

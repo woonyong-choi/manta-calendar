@@ -22,8 +22,11 @@ import { GoogleAuthManager, parseGoogleReturnLink, type OAuthProtocolData } from
 import {
   GoogleCalendarClient,
   type GoogleHttpRequest,
+  type GoogleEventResource,
+  type GoogleIncomingFields,
   syncGoogleCalendar as runGoogleSync,
 } from "./google-calendar";
+import { googleNoteChanges } from "./google-note";
 import { GOOGLE_OAUTH_RELAY_URL } from "./google-config";
 import {
   type CalendarEvent,
@@ -60,6 +63,7 @@ interface MoveUndoReceipt {
 }
 
 export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
+  private googleSyncRunning = false;
   override settings: CalendarSettings = structuredClone(DEFAULT_SETTINGS);
   private index!: CalendarIndex;
   private readonly listeners = new Set<() => void>();
@@ -370,10 +374,12 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     if (enabled) values.add(profileId);
     else values.delete(profileId);
     this.settings.googleCalendar.sourceProfileIds = [...values].sort();
+    if (!enabled && this.settings.googleCalendar.incomingProfileId === profileId) this.settings.googleCalendar.incomingProfileId = "";
     await this.saveSettings();
   }
 
   async syncGoogleCalendar(): Promise<void> {
+    if (this.googleSyncRunning) return;
     const google = this.settings.googleCalendar;
     if (!google.enabled || !this.googleAuth.isConnected() || !google.calendar) {
       new Notice(translate(this.settings.locale, "googleConnectionRequired"));
@@ -383,12 +389,18 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
       new Notice(translate(this.settings.locale, "googleNoSources"));
       return;
     }
-    if (!google.installationId) {
-      google.installationId = crypto.randomUUID();
-      await this.saveSettings();
+    if (google.incomingProfileId && !writableProfiles(this.settings.profiles).some(profile => profile.id === google.incomingProfileId && google.sourceProfileIds.includes(profile.id))) {
+      new Notice(translate(this.settings.locale, "writableSourceRequired"));
+      return;
     }
+    this.googleSyncRunning = true;
     try {
+      if (!google.installationId) {
+        google.installationId = crypto.randomUUID();
+        await this.saveSettings();
+      }
       google.calendar = await this.resolveGoogleCalendar();
+      this.index.rebuild();
       const result = await runGoogleSync({
         calendar: google.calendar,
         client: this.googleClient(),
@@ -397,6 +409,10 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
         installationId: google.installationId,
         records: google.records,
         sourceProfileIds: google.sourceProfileIds,
+        incoming: google.incomingProfileId ? {
+          importNew: true,
+          apply: (fields, remote, current) => this.applyGoogleEvent(fields, remote, current),
+        } : undefined,
       });
       google.records = result.records;
       await this.saveSettings();
@@ -407,10 +423,59 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
         failed: String(result.failed.length),
         skipped: String(result.skipped),
         updated: String(result.updated),
+        received: String(result.received),
       }));
+      if (result.conflicts.length || result.failed.length) {
+        new Notice([...result.conflicts, ...result.failed].slice(0, 5).map(item => item.reason).join("\n"), 12_000);
+      }
     } catch (error) {
       new Notice(error instanceof Error ? error.message : translate(this.settings.locale, "googleSyncFailed"));
+    } finally {
+      this.googleSyncRunning = false;
     }
+  }
+
+  private async applyGoogleEvent(fields: GoogleIncomingFields, remote: GoogleEventResource, current?: CalendarEvent): Promise<CalendarEvent> {
+    const google = this.settings.googleCalendar;
+    const profile = this.settings.profiles.find(candidate => candidate.id === (current?.profileId ?? google.incomingProfileId));
+    if (!profile || !google.calendar || !google.sourceProfileIds.includes(profile.id)) throw new Error("The incoming source is no longer selected.");
+    if (!remote.id || !/^[a-zA-Z0-9_-]+$/.test(remote.id)) throw new Error("Invalid Google event identifier.");
+    const path = current?.filePath ?? normalizePath(`${profile.folder}/google-${remote.id}.md`);
+    let file = this.app.vault.getAbstractFileByPath(path);
+    let updated: Record<string, unknown> = {};
+    const identity = { google_calendar_id: google.calendar.id, google_event_id: remote.id };
+    if (!current) {
+      updated = { ...googleNoteChanges(profile, fields, {}), ...identity };
+      if (profile.tag) updated.tags = [profile.tag];
+      if (selectProfileFromFrontmatter({ path }, updated, this.settings.profiles)?.id !== profile.id) throw new Error("The destination matches another source profile.");
+      if (!file) {
+        await this.ensureFolder(profile.folder);
+        file = await this.app.vault.create(path, `---\n${stringifyYaml(updated).trimEnd()}\n---\n`);
+      } else {
+        if (!(file instanceof TFile)) throw new Error("The Google import path is already occupied.");
+        // Recover an interrupted import only if identity and content still match.
+        const content = await this.app.vault.read(file);
+        const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(content);
+        const existing: unknown = match ? parseYaml(match[1] ?? "") : null;
+        if (!isRecord(existing) || Object.entries(updated).some(([key, value]) => JSON.stringify(existing[key]) !== JSON.stringify(value))) throw new Error("An existing note differs from this Google event. It was preserved.");
+      }
+    } else {
+      if (!(file instanceof TFile)) throw new Error("The mapped note no longer exists. Google was preserved.");
+      const currentFile = file;
+      await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+        const target = frontmatter as Record<string, unknown>;
+        if (selectProfileFromFrontmatter(currentFile, target, this.settings.profiles)?.id !== profile.id) throw new Error("The note source changed during synchronization.");
+        const changes = googleNoteChanges(profile, fields, target, current);
+        Object.assign(target, changes);
+        updated = structuredClone(target);
+      });
+    }
+    if (!(file instanceof TFile)) throw new Error("Google note could not be created.");
+    this.index.update(file, updated);
+    this.publishSnapshot();
+    const applied = this.index.snapshot().events.find(event => event.filePath === path && event.profileId === profile.id);
+    if (!applied) throw new Error("The imported note could not be indexed.");
+    return applied;
   }
 
   private async completeGoogleConnection(data: OAuthProtocolData): Promise<void> {

@@ -1,6 +1,6 @@
 # Google Calendar integration
 
-Link Calendar's Google integration is a narrow, optional projection for notifications. Markdown remains canonical.
+Link Calendar's Google integration is optional. Sending selected Markdown events is the default; two-way synchronization is enabled by choosing a writable incoming source.
 
 ## User flow
 
@@ -9,7 +9,8 @@ Link Calendar's Google integration is a narrow, optional projection for notifica
 3. Select **Connect Google Calendar** and approve the single requested permission in the browser.
 4. The callback tries to reopen Obsidian automatically. If the browser blocks the app link, select **Open Obsidian** on the completion page. If nothing happens, copy that button's link address and paste it into **Finish connection** in Link Calendar settings in the same Vault where you started connecting. Use a fresh link within ten minutes; never share it. This fallback uses the same request matching, expiration, and PKCE checks as automatic completion.
 5. Enable one or more source mappings to allow sending their events. Read-only editing and `access: local-only` are separate settings. An explicit `external_sync: deny` prevents sending a selected note.
-6. Select **Sync now**.
+6. Optionally choose **Two-way sync destination** to receive new Google events and Google edits. Existing settings remain send-only until you opt in.
+7. Select **Sync now**.
 
 The plugin creates one dedicated secondary calendar named **Link Calendar**. No Google developer credentials are required from end users.
 
@@ -17,15 +18,19 @@ The plugin creates one dedicated secondary calendar named **Link Calendar**. No 
 
 | Item | Behavior |
 | --- | --- |
-| Direction | Configured Markdown source → Google |
+| Direction | Configured Markdown source → Google by default; optional two-way sync in the dedicated calendar |
 | Trigger | Explicit **Sync now** command |
 | Included | Events from selected configured folder profiles, excluding notes marked `external_sync: deny` |
 | Excluded | Automatic body-index events, primary calendar, unrelated calendars, guests |
 | Created fields | Summary, start, end, private ownership marker |
 | Reminders | New events use that calendar's default reminders; later remote reminder changes are preserved |
 | Preserved fields | Google-side description, reminders, and other fields not owned by the plugin |
-| Remote edit | Stops the overwrite when the stored ETag changed |
+| Remote edit | Send-only: conflict. Two-way: updates the writable note if it has not changed; simultaneous edits preserve both versions |
+| Google-created event | Two-way: creates one stable-ID note in the chosen writable source; retry does not duplicate it |
+| Note content | Imports change mapped title/date/time/all-day properties only; body and unrelated properties remain intact |
+| Unsupported imports | Recurring/special events, sub-minute times, invalid ranges, incomplete or overlapping property maps are reported and preserved |
 | Local deletion | Leaves the remote event untouched |
+| Google deletion | Reports a conflict and preserves the note |
 | Remote calendar deletion | Stops sync; reconnecting is required before a new dedicated calendar is created |
 | Obsidian closed | No new sync; existing Google notifications continue normally |
 

@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 2026-09-04
+Last updated: 2026-09-09
 
 Public web copy: [link-calendar-oauth.woonyong.com/privacy](https://link-calendar-oauth.woonyong.com/privacy)
 
@@ -15,6 +15,8 @@ Notes with `external_sync: deny` are excluded even when their source is selected
 During an explicit sync, the plugin sends only the title, start, and end of events from folder sources the user selected. It also writes private ownership identifiers used to make retries deterministic and prevent cross-event overwrites. Note bodies, unrelated notes, guests, contacts, and existing calendar events are not sent.
 
 ## Storage and sharing
+
+When two-way synchronization is explicitly enabled, the plugin reads events from the dedicated calendar and stores supported event titles, dates and times in the selected writable Obsidian source. Imported notes include calendar and event IDs to recover interrupted imports without duplication. Existing note bodies and unrelated properties are preserved; Google descriptions, attendees and reminders are not imported into notes. This does not expand the OAuth permission or grant access to primary or unrelated calendars.
 
 - The Google refresh token is stored locally with Obsidian `SecretStorage`.
 - Calendar mapping identifiers and sync fingerprints are stored in the plugin's local settings.

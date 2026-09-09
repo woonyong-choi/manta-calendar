@@ -22,7 +22,7 @@ interface GoogleEventDateTime {
   timeZone?: string;
 }
 
-interface GoogleEventResource {
+export interface GoogleEventResource {
   end?: GoogleEventDateTime;
   etag?: string;
   extendedProperties?: { private?: Record<string, string> };
@@ -42,6 +42,7 @@ export interface GoogleEventPayload {
 }
 
 export interface GoogleSyncResult {
+  received: number;
   syncDenied: number;
   conflicts: { localKey: string; reason: string }[];
   created: number;
@@ -103,6 +104,26 @@ export class GoogleCalendarClient {
     return recordValue(response.json);
   }
 
+  async listEvents(calendarId: string): Promise<GoogleEventResource[]> {
+    const events: GoogleEventResource[] = [];
+    const seen = new Set<string>();
+    let pageToken = "";
+    do {
+      const query = new URLSearchParams({ maxResults: "250", showDeleted: "true", singleEvents: "false" });
+      if (pageToken) query.set("pageToken", pageToken);
+      const response = await this.request({ url: `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${query}` });
+      const page = recordValue(response.json);
+      if (!Array.isArray(page.items)) throw new Error("Google returned an invalid event list.");
+      events.push(...page.items.map(recordValue));
+      pageToken = stringValue(page.nextPageToken);
+      if (events.length > 10_000 || (pageToken && seen.has(pageToken)) || seen.size >= 100) {
+        throw new Error("Google event list exceeded the safe synchronization limit.");
+      }
+      seen.add(pageToken);
+    } while (pageToken);
+    return events;
+  }
+
   async insertEvent(calendarId: string, payload: GoogleEventPayload): Promise<GoogleEventResource> {
     const response = await this.request({
       body: JSON.stringify(payload),
@@ -155,6 +176,10 @@ export async function syncGoogleCalendar(input: {
   installationId: string;
   records: readonly GoogleSyncRecord[];
   sourceProfileIds: readonly string[];
+  incoming?: {
+    apply: (changes: GoogleIncomingFields, remote: GoogleEventResource, current?: CalendarEvent) => Promise<CalendarEvent>;
+    importNew?: boolean;
+  };
 }): Promise<GoogleSyncResult> {
   const sourceIds = new Set(input.sourceProfileIds);
   const selected = input.events.filter((event) => event.origin === "profile" && sourceIds.has(event.profileId));
@@ -162,6 +187,7 @@ export async function syncGoogleCalendar(input: {
   const records = input.records.map((record) => ({ ...record }));
   const byKey = new Map(records.map((record, index) => [recordKey(record.localKey, record.calendarId), index]));
   const result: GoogleSyncResult = {
+    received: 0,
     syncDenied: selected.length - events.length,
     conflicts: [],
     created: 0,
@@ -186,7 +212,7 @@ export async function syncGoogleCalendar(input: {
       const key = recordKey(localKey, input.calendar.id);
       const recordIndex = byKey.get(key);
       const record = recordIndex === undefined ? undefined : records[recordIndex];
-      if (record?.fingerprint === fingerprint) {
+      if (!input.incoming && record?.fingerprint === fingerprint) {
         result.skipped += 1;
         continue;
       }
@@ -222,7 +248,38 @@ export async function syncGoogleCalendar(input: {
         }
         throw error;
       }
-      if (record.etag && stringValue(remote.etag) !== record.etag) {
+      if (input.incoming) {
+        if (!stringValue(remote.etag)) throw new Error("Google event ETag is missing.");
+        if (remote.status === "cancelled") {
+          result.conflicts.push({ localKey, reason: "The Google event was deleted. The local note was preserved." });
+          continue;
+        }
+        const changes = fromGoogleEvent(remote, input.calendar.timeZone);
+        const remoteFingerprint = await sha256Base32(JSON.stringify(toGoogleEventPayload(
+          { ...event, ...changes }, input.calendar.timeZone, input.defaultDurationMinutes, input.installationId, ownershipKey,
+        )));
+        const localChanged = fingerprint !== record.fingerprint;
+        const remoteChanged = remoteFingerprint !== record.fingerprint;
+        if (localChanged && remoteChanged && fingerprint !== remoteFingerprint) {
+          result.conflicts.push({ localKey, reason: "Both Google and the note changed. Both versions were preserved." });
+          continue;
+        }
+        if (remoteChanged && !localChanged) {
+          const applied = await input.incoming.apply(changes, remote, event);
+          const appliedFingerprint = await sha256Base32(JSON.stringify(toGoogleEventPayload(
+            applied, input.calendar.timeZone, input.defaultDurationMinutes, input.installationId, ownershipKey,
+          )));
+          records[recordIndex] = toSyncRecord(localKey, input.calendar.id, record.eventId, appliedFingerprint, remote);
+          result.received += 1;
+          continue;
+        }
+        if (!localChanged || fingerprint === remoteFingerprint) {
+          records[recordIndex] = toSyncRecord(localKey, input.calendar.id, record.eventId, fingerprint, remote);
+          result.skipped += 1;
+          continue;
+        }
+      }
+      if (!input.incoming && record.etag && stringValue(remote.etag) !== record.etag) {
         result.conflicts.push({ localKey, reason: "The Google event changed after the previous sync." });
         continue;
       }
@@ -232,7 +289,7 @@ export async function syncGoogleCalendar(input: {
           input.calendar.id,
           record.eventId,
           mergeOwnedFields(remote, payload),
-          record.etag,
+          input.incoming ? stringValue(remote.etag) : record.etag,
         );
       } catch (error) {
         if (error instanceof GoogleApiError && error.status === 412) {
@@ -260,7 +317,77 @@ export async function syncGoogleCalendar(input: {
       }
     }
   }
+  if (input.incoming?.importNew && result.failed.length === 0) {
+    const localKeys = new Set(selected.map(googleLocalKey));
+    for (const record of records) {
+      if (record.calendarId === input.calendar.id && sourceIds.has(record.localKey.split("\u0000")[0] ?? "") && !localKeys.has(record.localKey)) {
+        result.conflicts.push({ localKey: record.localKey, reason: "A mapped note is missing or no longer a valid event. Google was preserved." });
+      }
+    }
+    const known = new Set(records.filter(record => record.calendarId === input.calendar.id).map(record => record.eventId));
+    try {
+      const remoteEvents = await input.client.listEvents(input.calendar.id);
+      for (const remote of remoteEvents) {
+        const id = stringValue(remote.id);
+        if (!id || known.has(id) || remote.status === "cancelled") continue;
+        if (remote.extendedProperties?.private?.linkCalendarInstallation) {
+          result.conflicts.push({ localKey: id, reason: "An existing plugin-owned event has no active local mapping. It was preserved." });
+          continue;
+        }
+        try {
+          if (!stringValue(remote.etag)) throw new Error("Google event ETag is missing.");
+          const applied = await input.incoming.apply(fromGoogleEvent(remote, input.calendar.timeZone), remote);
+          const localKey = googleLocalKey(applied);
+          const fingerprint = await sha256Base32(JSON.stringify(toGoogleEventPayload(
+            applied, input.calendar.timeZone, input.defaultDurationMinutes, input.installationId, await sha256Base32(localKey),
+          )));
+          records.push(toSyncRecord(localKey, input.calendar.id, id, fingerprint, remote));
+          known.add(id);
+          result.received += 1;
+        } catch (error) {
+          result.failed.push({ localKey: id, reason: error instanceof Error ? error.message : "Google import failed." });
+        }
+      }
+    } catch (error) {
+      result.failed.push({ localKey: "calendar", reason: error instanceof Error ? error.message : "Google event listing failed." });
+    }
+  }
   return result;
+}
+
+export type GoogleIncomingFields = Pick<CalendarEvent, "title" | "startDate" | "endDate" | "startTime" | "endTime" | "allDay">;
+
+export function fromGoogleEvent(remote: GoogleEventResource, timeZone: string): GoogleIncomingFields {
+  if (remote.recurrence || remote.recurringEventId || remote.eventType && remote.eventType !== "default") {
+    throw new Error("Recurring or special Google events are preserved but cannot be imported yet.");
+  }
+  if (remote.status === "cancelled") throw new Error("Deleted Google events cannot be imported.");
+  const title = stringValue(remote.summary).trim() || "Untitled event";
+  if (remote.start?.date && remote.end?.date) {
+    const startDate = validDate(remote.start.date);
+    const exclusiveEnd = validDate(remote.end.date);
+    if (exclusiveEnd <= startDate) throw new Error("Invalid Google all-day range.");
+    return { title, startDate, endDate: addDays(exclusiveEnd, -1), startTime: "", endTime: "", allDay: true };
+  }
+  const start = googleClock(remote.start?.dateTime, timeZone);
+  const end = googleClock(remote.end?.dateTime, timeZone);
+  if (end.instant <= start.instant) throw new Error("Invalid Google event range.");
+  return { title, startDate: start.date, endDate: end.date, startTime: start.time, endTime: end.time, allDay: false };
+}
+
+function validDate(value: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) throw new Error("Invalid Google date.");
+  return value;
+}
+
+function googleClock(value: string | undefined, timeZone: string): { date: string; time: string; instant: number } {
+  if (!value || !/T\d{2}:\d{2}:00(?:\.000)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) throw new Error("Google event time must include an offset and whole minutes.");
+  const instant = Date.parse(value);
+  if (!Number.isFinite(instant)) throw new Error("Invalid Google time.");
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(new Date(instant)).map(part => [part.type, part.value]));
+  return { date: `${parts.year ?? ""}-${parts.month ?? ""}-${parts.day ?? ""}`, time: `${parts.hour ?? ""}:${parts.minute ?? ""}`, instant };
 }
 
 function googleLocalKey(event: Pick<CalendarEvent, "filePath" | "profileId">): string {

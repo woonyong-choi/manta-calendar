@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { App, SettingGroupItem } from "obsidian";
 
-import { DEFAULT_SETTINGS, createProfile, type CalendarSettings } from "../src/model";
+import { DEFAULT_SETTINGS, createProfile, normalizeSettings, serializeSettings, type CalendarSettings } from "../src/model";
 import { LinkCalendarSettingTab, type SettingsHost } from "../src/settings";
 
 function tab(overrides: Partial<CalendarSettings> = {}, connected = false) {
@@ -52,6 +52,15 @@ function isGoogleGroup(value: unknown): value is {
 }
 
 describe("Google Calendar settings boundary", () => {
+  it("keeps two-way opt-in and its selected source after restarting", async () => {
+    const profile = createProfile("Calendar");
+    profile.editable = true;
+    const fixture = tab({ profiles: [profile] });
+    await fixture.tab.setControlValue("googleIncomingProfile", profile.id);
+    const restored = normalizeSettings(serializeSettings(fixture.host.settings));
+    expect(restored.googleCalendar.incomingProfileId).toBe(profile.id);
+    expect(restored.googleCalendar.sourceProfileIds).toContain(profile.id);
+  });
   it("shows only an off toggle by default", () => {
     const fixture = tab();
     const items = googleItems(fixture.tab);

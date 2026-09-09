@@ -38,6 +38,7 @@ export interface GoogleSyncRecord {
 }
 
 interface GoogleCalendarSettings {
+  incomingProfileId?: string;
   calendar: GoogleCalendarTarget | null;
   defaultDurationMinutes: number;
   enabled: boolean;
@@ -172,6 +173,7 @@ export function serializeSettings(settings: CalendarSettings): Record<string, un
       calendar: settings.googleCalendar.calendar,
       defaultDurationMinutes: settings.googleCalendar.defaultDurationMinutes,
       enabled: settings.googleCalendar.enabled,
+      incomingProfileId: settings.googleCalendar.incomingProfileId ?? "",
       installationId: settings.googleCalendar.installationId,
       records: settings.googleCalendar.records,
       sourceProfileIds: settings.googleCalendar.sourceProfileIds,
@@ -224,6 +226,7 @@ function normalizeGoogleCalendar(
     : 60;
   return {
     calendar,
+    incomingProfileId: sourceProfileIds.includes(stringValue(value.incomingProfileId)) ? stringValue(value.incomingProfileId) : "",
     defaultDurationMinutes: duration >= 5 && duration <= 1_440 ? duration : 60,
     enabled: value.enabled === true,
     installationId: stringValue(value.installationId),

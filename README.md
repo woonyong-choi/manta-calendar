@@ -13,7 +13,7 @@
 
 Link Calendar Navigator finds explicit dates, periods, history entries, and deadlines already written in active Markdown bodies. Select a day to open the source note or inspect every note that mentioned the same timeline item. Dates from configured calendar-note folders can appear beside them without changing Markdown ownership.
 
-**Markdown → automatic timeline → original note.** Optional sync adds **selected source → dedicated Google calendar** without changing the source of truth.
+**Markdown → automatic timeline → original note.** Optional sync connects selected sources with a dedicated Google calendar. Two-way sync is opt-in.
 
 ![Link Calendar Navigator moving from Markdown dates to a readable month, daily agenda, optional dedicated Google calendar, and idempotent sync result](docs/media/link-calendar-demo.gif)
 
@@ -55,11 +55,13 @@ Google Calendar integration is off by default. When you enable it, one **Connect
 2. Enable **Google Calendar** and connect your account in the browser.
 3. Turn on only the source mappings you want, then select **Sync now**.
 
-The first release is deliberately one-way: **configured Markdown source → dedicated Google calendar**. It creates or updates only events previously created by this plugin. Existing calendars, unrelated events, guests, and remote descriptions are outside its write boundary. Deleting a note never authorizes a remote deletion, and a Google-side edit stops a later overwrite as a conflict.
+The default is **configured Markdown source → dedicated Google calendar**. To enable both directions, choose a writable source in **Two-way sync destination**, then run **Sync now**. New non-recurring Google events in the dedicated calendar become notes in that folder; Google title/date/time edits update mapped writable notes. Notes retain their bodies and unrelated properties. If both sides changed, neither overwrites the other. Remote descriptions, reminders, guests, primary and unrelated calendars remain outside the write boundary.
+
+Deletion is not propagated: a missing or cancelled mapped event is reported and the surviving note or Google event is preserved. Recurring and special Google event types are reported as unsupported instead of being flattened or altered. Imports require distinct title/date/end/time/all-day property mappings. Event times are converted into the dedicated calendar's time zone at minute precision; sub-minute times are rejected. Listing is bounded to 10,000 events per manual sync.
 
 Source selection explicitly permits sending events, independently of whether the source is editable. Only an explicit `external_sync: deny` prevents sending a selected note; read-only editing and `access: local-only` do not. Denied notes are counted in the sync summary. Excluding a note preserves its existing mapping and does not delete an earlier Google event.
 
-The dedicated calendar appears in Google Calendar on desktop and mobile, so its normal notifications remain available even when Obsidian is closed. Obsidian must be open when you run a sync; this release does not claim background or two-way synchronization.
+The dedicated calendar appears in Google Calendar on desktop and mobile, so its normal notifications remain available even when Obsidian is closed. Obsidian must be open when you run a sync; synchronization does not run in the background.
 
 Only the narrow `calendar.app.created` permission is requested. Refresh tokens stay in Obsidian `SecretStorage`; note bodies are not sent to the OAuth relay. See [Google Calendar privacy and security](docs/google-calendar.md) and the [privacy policy](PRIVACY.md).
 
