@@ -7,7 +7,7 @@ Link Calendar's Google integration is a narrow, optional projection for notifica
 1. Configure a folder source in Link Calendar.
 2. Enable Google Calendar in plugin settings.
 3. Select **Connect Google Calendar** and approve the single requested permission in the browser.
-4. The callback tries to reopen Obsidian automatically. If the browser blocks the app link, select **Open Obsidian** on the completion page.
+4. The callback tries to reopen Obsidian automatically. If the browser blocks the app link, select **Open Obsidian** on the completion page. If nothing happens, copy that button's link address and paste it into **Finish connection** in Link Calendar settings in the same Vault where you started connecting. Use a fresh link within ten minutes; never share it. This fallback uses the same request matching, expiration, and PKCE checks as automatic completion.
 5. Enable one or more source mappings to allow sending their events. Read-only editing and `access: local-only` are separate settings. An explicit `external_sync: deny` prevents sending a selected note.
 6. Select **Sync now**.
 

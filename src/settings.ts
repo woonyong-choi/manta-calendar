@@ -24,6 +24,7 @@ export interface SettingsHost {
   settings: CalendarSettings;
   chooseFolder(onChoose: (folder: TFolder) => void): void;
   connectGoogle(): Promise<void>;
+  completeGoogleFromLink(link: string): Promise<void>;
   disconnectGoogle(): Promise<void>;
   googleAvailable(): boolean;
   googleConnected(): boolean;
@@ -201,7 +202,35 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
         });
       },
     });
-    if (!connected) return items;
+    if (!connected) {
+      items.push({
+        name: translate(locale, "googleFinishConnection"),
+        desc: translate(locale, "googleFinishConnectionDesc"),
+        render: (setting) => {
+          let returnLink = "";
+          setting.addText((input) => {
+            input.inputEl.type = "password";
+            input.inputEl.autocomplete = "off";
+            input.setPlaceholder(translate(locale, "googleReturnLink"))
+              .onChange((value) => { returnLink = value; });
+            setting.addButton((button) => {
+              button.setButtonText(translate(locale, "googleFinishConnection"))
+                .onClick(() => {
+                  const link = returnLink;
+                  returnLink = "";
+                  input.setValue("");
+                  button.setDisabled(true);
+                  void this.host.completeGoogleFromLink(link).finally(() => {
+                    button.setDisabled(false);
+                    this.update();
+                  });
+                });
+            });
+          });
+        },
+      });
+      return items;
+    }
     items.push({
       name: translate(locale, "googleCalendarTarget"),
       desc: google.calendar?.name ?? translate(locale, "googleNoCalendars"),

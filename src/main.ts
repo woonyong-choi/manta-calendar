@@ -18,7 +18,7 @@ import {
   selectProfileFromFrontmatter,
 } from "./index";
 import { formatMessage, translate } from "./i18n";
-import { GoogleAuthManager } from "./google-auth";
+import { GoogleAuthManager, parseGoogleReturnLink, type OAuthProtocolData } from "./google-auth";
 import {
   GoogleCalendarClient,
   type GoogleHttpRequest,
@@ -146,7 +146,9 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
       },
     });
     this.registerObsidianProtocolHandler("link-calendar-google", (data) => {
-      void this.completeGoogleConnection(data);
+      void this.completeGoogleConnection({
+        code: data.code, error: data.error, relay_state: data.relay_state, state: data.state,
+      });
     });
     this.settingsTab = new LinkCalendarSettingTab(this.app, this);
     this.addSettingTab(this.settingsTab);
@@ -338,6 +340,15 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     }
   }
 
+  async completeGoogleFromLink(link: string): Promise<void> {
+    try {
+      await this.completeGoogleConnection(parseGoogleReturnLink(link));
+    } catch (error) {
+      new Notice(error instanceof Error ? error.message : translate(this.settings.locale, "googleSyncFailed"));
+    }
+    this.settingsTab.update();
+  }
+
   async ensureGoogleCalendar(showFailure = true): Promise<void> {
     if (!this.googleAuth.isConnected()) {
       if (showFailure) new Notice(translate(this.settings.locale, "googleConnectionRequired"));
@@ -402,7 +413,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     }
   }
 
-  private async completeGoogleConnection(data: Record<string, string>): Promise<void> {
+  private async completeGoogleConnection(data: OAuthProtocolData): Promise<void> {
     try {
       await this.googleAuth.completeAuthorization(data);
       this.settings.googleCalendar.enabled = true;

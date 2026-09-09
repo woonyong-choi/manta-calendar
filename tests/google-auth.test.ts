@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GoogleAuthError, GoogleAuthManager, type SecretStore } from "../src/google-auth";
+import { GoogleAuthError, GoogleAuthManager, parseGoogleReturnLink, type SecretStore } from "../src/google-auth";
 import type { GoogleHttpRequest, GoogleHttpResponse } from "../src/google-calendar";
 
 const scopes = [
@@ -28,6 +28,38 @@ function manager(
 }
 
 describe("Google OAuth client", () => {
+  it("finishes a pending connection from a pasted return link when the app handoff never fires", async () => {
+    const secrets = new MemorySecrets();
+    let exchanges = 0;
+    const auth = manager(secrets, () => {
+      exchanges++;
+      return { status: 200, json: { accessToken: "access", refreshToken: "refresh", expiresIn: 3600, scopes } };
+    });
+    const request = new URL(await auth.beginAuthorization("en"));
+    const link = new URL("obsidian://link-calendar-google");
+    link.searchParams.set("code", "fresh-code");
+    link.searchParams.set("relay_state", "signed-state");
+    link.searchParams.set("state", request.searchParams.get("client_state") ?? "");
+    expect(auth.connectionPhase()).toBe("waiting");
+    await auth.completeAuthorization(parseGoogleReturnLink(link.toString()));
+    expect(auth.isConnected()).toBe(true);
+    expect(exchanges).toBe(1);
+    await expect(auth.completeAuthorization(parseGoogleReturnLink(link.toString()))).rejects.toThrow("expired");
+    expect(exchanges).toBe(1);
+    expect([...secrets.values.values()].join(" ")).not.toContain("fresh-code");
+  });
+
+  it("rejects unrelated and ambiguous pasted links without making an exchange", () => {
+    for (const link of [
+      "https://example.com/oauth/callback?code=secret",
+      "obsidian://other-action?code=secret",
+      "obsidian://link-calendar-google/other?code=secret",
+      "obsidian://link-calendar-google?state=a&state=b",
+      "obsidian://link-calendar-google?code=a&code=b",
+      "obsidian://link-calendar-google?code=a#fragment",
+    ]) expect(() => parseGoogleReturnLink(link)).toThrow(GoogleAuthError);
+  });
+
   it("starts PKCE without exposing the verifier and accepts only the matching callback", async () => {
     const secrets = new MemorySecrets();
     const requests: GoogleHttpRequest[] = [];

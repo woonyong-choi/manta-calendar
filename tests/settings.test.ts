@@ -12,6 +12,7 @@ function tab(overrides: Partial<CalendarSettings> = {}, connected = false) {
     app: {} as App,
     chooseFolder: vi.fn(),
     connectGoogle: vi.fn(async () => {}),
+    completeGoogleFromLink: vi.fn(async () => {}),
     disconnectGoogle: vi.fn(async () => {}),
     ensureGoogleCalendar: vi.fn(async () => {}),
     googleAvailable: () => true,

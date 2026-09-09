@@ -186,6 +186,7 @@ Removing the plugin leaves every Markdown note and property intact.
 - **A move was rejected:** the Markdown changed after indexing or no longer matches the configured source.
 - **Search shows no results:** clear the query and source filters to restore the month.
 - **Google Calendar is unavailable:** check the connection settings and retry. Clean-checkout builds use the versioned public relay origin; custom development builds can override `LINK_CALENDAR_GOOGLE_RELAY_URL`.
+- **Open Obsidian does nothing after Google authorization:** copy the **Open Obsidian** button's link address and paste it into **Finish connection** in this plugin's settings in the Vault where you started connecting. Use a fresh link within ten minutes and never share it.
 - **A Google event was not overwritten:** check the sync summary. A remote ETag change is reported as a conflict instead of being replaced.
 - **A deleted note remains in Google:** this is intentional. Remote deletion is never inferred from a missing local file.
 - **The dedicated Google calendar was deleted:** sync stops instead of recreating it silently. Disconnect and connect again only if you want a new dedicated calendar.

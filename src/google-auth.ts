@@ -34,6 +34,24 @@ interface PendingAuthorization {
 
 export class GoogleAuthError extends Error {}
 
+export function parseGoogleReturnLink(value: string): OAuthProtocolData {
+  let url: URL;
+  try { url = new URL(value.trim()); }
+  catch { throw new GoogleAuthError("Paste the link from the Open Obsidian button, not the Google page address."); }
+  if (url.protocol !== "obsidian:" || url.hostname !== "link-calendar-google"
+    || url.pathname !== "" || url.username || url.password || url.port || url.hash) {
+    throw new GoogleAuthError("This is not a Link Calendar authorization return link.");
+  }
+  for (const key of ["code", "error", "relay_state", "state"]) {
+    if (url.searchParams.getAll(key).length > 1) {
+      throw new GoogleAuthError("The authorization return link contains duplicate parameters.");
+    }
+  }
+  return Object.fromEntries(["code", "error", "relay_state", "state"].map(
+    (key) => [key, url.searchParams.get(key) ?? ""],
+  ));
+}
+
 export type ConnectionPhase = "idle" | "waiting" | "returned" | "exchanging" | "connected" | "failed" | "expired";
 
 export class GoogleAuthManager {
