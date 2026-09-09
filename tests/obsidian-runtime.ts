@@ -65,3 +65,8 @@ export class Menu {
 export function setIcon(element: HTMLElement, icon: string): void {
   element.dataset.icon = icon;
 }
+
+// Refresh fixtures use JSON, a YAML subset; Obsidian owns the YAML parser.
+export function parseYaml(text: string): unknown {
+  return JSON.parse(text) as unknown;
+}

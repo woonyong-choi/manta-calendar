@@ -72,6 +72,18 @@ function fixture() {
   return { caches, files, metadataCache, profile, vault };
 }
 
+it("refreshes sync inputs from saved notes while metadata is missing or stale", async () => {
+  const f = fixture();
+  const vault = { ...f.vault, read: async (file: TFile) => file.path.endsWith("Alpha.md")
+    ? '---\n{"Date":"2026-09-10","Title":"Freshly saved"}\n---\nBody remains here'
+    : '---\n{}\n---\n' };
+  const index = new CalendarIndex(vault as never, f.metadataCache as never, [f.profile]);
+  index.rebuild();
+  f.caches.delete("Calendar/Alpha.md");
+  await index.refreshSources([f.profile.id]);
+  expect(index.snapshot().events.find(event => event.filePath === "Calendar/Alpha.md")).toMatchObject({ title: "Freshly saved", startDate: "2026-09-10" });
+});
+
 function testFile(path: string): TFile {
   const file = new TFile();
   file.path = path;

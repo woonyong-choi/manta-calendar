@@ -1,4 +1,4 @@
-import { TFile, TFolder, type CachedMetadata, type MetadataCache, type Vault } from "obsidian";
+import { TFile, TFolder, parseYaml, type CachedMetadata, type MetadataCache, type Vault } from "obsidian";
 
 import {
   type CalendarEvent,
@@ -58,6 +58,26 @@ export class CalendarIndex {
     this.notes.clear();
     this.automaticBody.clear();
     for (const file of sourceFiles(this.vault, this.profiles)) this.indexFile(file);
+    this.revision += 1;
+  }
+
+  async refreshSources(profileIds: readonly string[]): Promise<void> {
+    const selected = new Set(profileIds);
+    const files = sourceFiles(this.vault, this.profiles.filter(profile => selected.has(profile.id)));
+    const staged: { file: TFile; frontmatter: Record<string, unknown> }[] = [];
+    for (let offset = 0; offset < files.length; offset += 32) {
+      staged.push(...await Promise.all(files.slice(offset, offset + 32).map(async (file) => {
+        const text = await this.vault.read(file);
+        const match = /^\uFEFF?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text);
+        const parsed: unknown = match ? parseYaml(match[1] ?? "") : {};
+        if (parsed !== null && !isRecord(parsed)) throw new Error("A selected note has invalid frontmatter; synchronization stopped.");
+        return { file, frontmatter: isRecord(parsed) ? parsed : {} };
+      })));
+    }
+    for (const [path, note] of this.notes) {
+      if (selected.has(note.event?.profileId ?? note.diagnostic?.profileId ?? "")) this.notes.delete(path);
+    }
+    for (const { file, frontmatter } of staged) this.indexFile(file, frontmatter);
     this.revision += 1;
   }
 

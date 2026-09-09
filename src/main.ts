@@ -400,7 +400,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
         await this.saveSettings();
       }
       google.calendar = await this.resolveGoogleCalendar();
-      this.index.rebuild();
+      await this.index.refreshSources(google.sourceProfileIds);
       const result = await runGoogleSync({
         calendar: google.calendar,
         client: this.googleClient(),
