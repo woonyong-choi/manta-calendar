@@ -15,7 +15,7 @@ Find a note by the date you remember, even when its filename has no date. Link C
 
 **Markdown → automatic timeline → original note.** Optional sync connects selected sources with a dedicated Google calendar. Two-way sync is opt-in.
 
-![Link Calendar Navigator moving from Markdown dates to a readable month, daily agenda, optional dedicated Google calendar, and idempotent sync result](docs/media/link-calendar-demo.gif)
+![Link Calendar Navigator copying a date example, selecting a calendar day, and opening its source note in Obsidian](docs/media/link-calendar-demo.gif)
 
 Calendar view captured with plugin 3.6.0 in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault; this view is unchanged in 3.6.2. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
 
