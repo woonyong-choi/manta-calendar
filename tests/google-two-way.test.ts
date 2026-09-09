@@ -24,6 +24,17 @@ function fixture() {
 }
 
 describe("two-way synchronization", () => {
+  it("preserves the exact Google instant when only the title changes across a DST fold", async () => {
+    const f = fixture();
+    f.input.calendar = { ...calendar, timeZone: "America/New_York" };
+    const timed = { ...event, allDay: false, startDate: "2026-11-01", endDate: "2026-11-01", startTime: "01:30", endTime: "02:30" };
+    f.input.events = [timed];
+    const first = await syncGoogleCalendar(f.input);
+    f.changeRemote({ start: { dateTime: "2026-11-01T01:30:00-05:00" }, end: { dateTime: "2026-11-01T02:30:00-05:00" } });
+    await syncGoogleCalendar({ ...f.input, events: [{ ...timed, title: "New title" }], records: first.records, incoming: { apply: vi.fn() } });
+    const body = JSON.parse(f.requests.find(r => r.method === "PUT")?.body ?? "{}") as { start?: { dateTime?: string } };
+    expect(body.start?.dateTime).toBe("2026-11-01T01:30:00-05:00");
+  });
   it("imports Google-created events once across paginated lists", async () => {
     const urls: string[] = [];
     const remote = { id: "new-google", etag: "one", summary: "Google created", start: { date: "2026-09-09" }, end: { date: "2026-09-10" } };

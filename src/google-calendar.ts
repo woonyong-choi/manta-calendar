@@ -255,9 +255,13 @@ export async function syncGoogleCalendar(input: {
           continue;
         }
         const changes = fromGoogleEvent(remote, input.calendar.timeZone);
-        const remoteFingerprint = await sha256Base32(JSON.stringify(toGoogleEventPayload(
+        const projectedRemote = toGoogleEventPayload(
           { ...event, ...changes }, input.calendar.timeZone, input.defaultDurationMinutes, input.installationId, ownershipKey,
-        )));
+        );
+        const remoteFingerprint = await sha256Base32(JSON.stringify(projectedRemote));
+        // A title-only edit must not reinterpret an ambiguous daylight-saving time.
+        if (JSON.stringify(projectedRemote.start) === JSON.stringify(payload.start) && remote.start) payload.start = remote.start;
+        if (JSON.stringify(projectedRemote.end) === JSON.stringify(payload.end) && remote.end) payload.end = remote.end;
         const localChanged = fingerprint !== record.fingerprint;
         const remoteChanged = remoteFingerprint !== record.fingerprint;
         if (localChanged && remoteChanged && fingerprint !== remoteFingerprint) {
