@@ -3,7 +3,7 @@
   "name": "Link Calendar Navigator",
   "version": "3.6.2",
   "minAppVersion": "1.13.0",
-  "description": "Turn Markdown dates into a low-noise Vault timeline, with optional one-way Google Calendar reminders.",
+  "description": "Turn Markdown dates into a low-noise Vault timeline, with optional two-way Google Calendar synchronization.",
   "author": "Woonyong Choi",
   "authorUrl": "https://github.com/woonyong-kr",
   "isDesktopOnly": false
