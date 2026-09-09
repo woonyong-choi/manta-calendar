@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.6.2
+
+- Add opt-in two-way synchronization for non-recurring events in the dedicated Google calendar. Import new Google events into a selected writable source and receive title/date/time edits without replacing note bodies.
+- Preserve both sides on concurrent edits, missing notes, cancellations, unsupported event types, and denied or read-only writes. Keep existing send-only settings compatible and prevent overlapping sync runs.
+- Add a masked return-link recovery field when browser-to-Obsidian authorization handoff fails; retain PKCE, matching state, expiration and replay protection.
+- Existing demo media illustrates unchanged date navigation, not a live two-way synchronization session.
+
 ## 3.6.1
 
 - Align agenda titles, metadata, source-note icons, and keyboard navigation.
