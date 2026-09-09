@@ -11,13 +11,13 @@
   <strong>Find dated notes in a calendar. Open the original with one click.</strong>
 </p>
 
-Link Calendar Navigator finds explicit dates, periods, history entries, and deadlines already written in active Markdown bodies. Select a day to open the source note or inspect every note that mentioned the same timeline item. Dates from configured calendar-note folders can appear beside them without changing Markdown ownership.
+Find a note by the date you remember, even when its filename has no date. Link Calendar Navigator collects explicitly written dates and date ranges from Markdown. Pick a day to see its notes, open the original, or follow other notes that mention the same event. You can also add folders that store dates in note properties.
 
 **Markdown → automatic timeline → original note.** Optional sync connects selected sources with a dedicated Google calendar. Two-way sync is opt-in.
 
 ![Link Calendar Navigator moving from Markdown dates to a readable month, daily agenda, optional dedicated Google calendar, and idempotent sync result](docs/media/link-calendar-demo.gif)
 
-Captured in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
+Calendar view captured with plugin 3.6.0 in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault; this view is unchanged in 3.6.2. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
 
 ![Link Calendar Navigator showing a dated note in the actual Obsidian month view](docs/media/link-calendar-overview.png)
 
@@ -29,7 +29,24 @@ Captured in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault. Th
   <a href="https://community.obsidian.md/plugins/link-calendar">Community page</a>
 </p>
 
-## Why it feels different
+## First timeline: one note, one date
+
+1. Open **Settings → Community plugins → Browse**, search for **Link Calendar Navigator**, then **Install** and **Enable**.
+2. Create a normal note named `Project check-in`. Paste this line into the note body, outside a code block:
+
+```markdown
+- 2026-09-10 scheduled · Project check-in
+```
+
+3. Open the command palette and run **Open Link Calendar Navigator**, or select its calendar ribbon icon.
+4. Navigate to **September 2026** and select **September 10**. You should see **Project check-in** in the month and selected-day agenda.
+5. Select the event title to return to `Project check-in.md`.
+
+No account, folder configuration, or date property is needed for this example. You can replace the date with today's `YYYY-MM-DD` date and use **Today** instead. The automatic calendar reads the note; it does not rewrite it.
+
+**Useful next steps:** collect meeting dates across notes, follow a multi-day project period, or find every note mentioning the same milestone. For an empty month, the built-in example help explains the accepted date forms.
+
+## What you can do
 
 - **Zero-setup timeline:** explicit timeline entries in active Markdown bodies are indexed automatically.
 - **Your notes remain the source:** the index is derived in memory; notes are never copied into a plugin database.
@@ -39,15 +56,32 @@ Captured in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault. Th
 - **Optional controlled writing:** folder profiles can explicitly allow note creation and conflict-checked date moves.
 - **Local by default:** no account or network request is used until Google Calendar is explicitly enabled and connected.
 
-## First timeline
+## Optional Google Calendar sync
 
-1. Install **Link Calendar Navigator** from **Settings → Community plugins**.
-2. Run **Open Link Calendar Navigator** or select the calendar ribbon icon.
-3. Move between months, select an event title, and open its source Markdown note.
+The local calendar works offline. Google is optional and off by default. Connecting creates a separate calendar named **Link Calendar** in your Google account; you do not need to create a Google developer project.
 
-If the month is empty, expand the example help and copy a dated list entry into a note. Automatic indexing recognizes explicit body dates; frontmatter dates require a configured source. Folder setup is optional and is needed only when you want a custom property mapping or explicitly writable calendar notes.
+| What you want | What to choose |
+| --- | --- |
+| Only find dates already in your notes | Leave Google disabled; use the first example above. |
+| Send calendar notes to Google for its reminders | Select the note-folder sources to send, connect Google, then select **Sync now**. |
+| Create or edit events in either app | Also choose a writable folder source under **Two-way sync destination**, then select **Sync now**. |
 
-## Optional Google Calendar reminders
+A **source** means a folder of Obsidian notes with mapped date properties. It is not your Google account or primary calendar. Automatic dates found in note bodies are not sent to Google by selecting two-way sync.
+
+### First two-way sync
+
+1. In **Calendar settings**, use **Add source** for the note folder that will hold your calendar notes. Enable **Writable** and configure distinct title, start/end date, time, and all-day properties. The source preview shows what matches before you use it.
+2. Enable **Google Calendar**, select **Connect Google Calendar**, and authorize your account in the browser. Return to the same Obsidian Vault.
+3. Select that folder source for Google sync and choose it as **Two-way sync destination**.
+4. In Google Calendar, create a simple, non-recurring event in **Link Calendar**. In Obsidian, select **Sync now**. A new note should appear in the chosen folder.
+5. Change a mapped title or date in that note and select **Sync now** again. The corresponding event in **Link Calendar** should update.
+
+Sync is manual and Obsidian must be open. If both sides changed, sync asks you to review the conflict instead of overwriting either one. Deleting on one side does not delete the other. Recurring events are not imported. Primary and unrelated Google calendars stay outside this integration.
+
+See the [complete Google setup, supported fields, and recovery guide](docs/google-calendar.md).
+
+<details>
+<summary>Sync boundaries, permissions, and less common cases</summary>
 
 Google Calendar integration is off by default. When you enable it, one **Connect Google Calendar** action creates a dedicated **Link Calendar** in your account. You do not create an OAuth client or paste credentials.
 
@@ -65,6 +99,8 @@ The dedicated calendar appears in Google Calendar on desktop and mobile, so its 
 
 Only the narrow `calendar.app.created` permission is requested. Refresh tokens stay in Obsidian `SecretStorage`; note bodies are not sent to the OAuth relay. See [Google Calendar privacy and security](docs/google-calendar.md) and the [privacy policy](PRIVACY.md).
 
+</details>
+
 ## Two inputs, one timeline
 
 The calendar accepts only two inputs: explicit timeline entries in Markdown bodies, and date properties from folders you deliberately configure as calendar sources. It never promotes file creation or modification timestamps.
@@ -72,11 +108,11 @@ The calendar accepts only two inputs: explicit timeline entries in Markdown bodi
 ### Markdown body
 
 ```markdown
-- 2026-08-04 → 2026-08-17 · [[Kubernetes recovery]]
-- 2026-08-24 → ongoing · [[KRAFTON application]]
-- 2026-09-02 scheduled · [[Final interview]]
+- 2026-08-04 → 2026-08-17 · [[Workshop preparation]]
+- 2026-08-24 → ongoing · [[Research project]]
+- 2026-09-02 scheduled · [[Team review]]
 - 2026-09-03 14:00–15:30 scheduled · [[Design review]]
-- 2026-09-10 deadline · [[Application]]
+- 2026-09-10 deadline · [[Draft submission]]
 - 2026-08-25 · Result confirmed
 ```
 
@@ -92,10 +128,10 @@ Time values are treated as wall-clock values: `2026-09-02T14:00:00+09:00` remain
 
 ## Deduplication and provenance
 
-The same period can be repeated across a project note, a person note, and a career history:
+The same period can be repeated across a project plan, meeting note, and progress log:
 
 ```markdown
-[[KRAFTON AI Engineer intern application]] · 2026-08-02 → 2026-08-27
+[[Community workshop]] · 2026-08-02 → 2026-08-27
 ```
 
 Link Calendar Navigator uses one stable identity:
@@ -107,7 +143,7 @@ canonical target + start date + end date + temporal kind
 Matching entries become one calendar item. The selected-day panel puts a document icon and the event kind beside the title. It omits an identical source-note label and lists other notes that mention the item:
 
 ```text
-KRAFTON AI Engineer intern application
+Community workshop
 2026-08-02 → 2026-08-27
 
 Mentioned in 4 notes
@@ -195,7 +231,15 @@ Removing the plugin leaves every Markdown note and property intact.
 
 ## Installation and compatibility
 
-Install from **Settings → Community plugins → Browse → Link Calendar Navigator**. The plugin supports Obsidian 1.13.0 or later on desktop and mobile.
+Current release: **3.6.2**, for Obsidian **1.13.0+** on desktop and mobile.
+
+| Feature | Desktop | Mobile | Network |
+| --- | --- | --- | --- |
+| Local month, agenda, and note navigation | Supported | Supported | None |
+| Google sync | Supported | Supported | Needed when connecting or selecting Sync now |
+| Google reminders after a sync | Managed by Google Calendar | Managed by Google Calendar | Obsidian can be closed |
+
+Recent captures use desktop Obsidian 1.13.7. They do not represent a fresh mobile-device test.
 
 For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
 
