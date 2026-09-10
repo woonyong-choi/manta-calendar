@@ -141,7 +141,7 @@ for (const path of requiredMedia) {
     errors.push(`release media record is missing ${path}`);
     continue;
   }
-  if (!publicDocs[0].includes(`](${path})`)) errors.push(`README does not embed ${path}`);
+  if (path.endsWith(".gif") && !publicDocs[0].includes(`](${path})`)) errors.push(`README does not embed ${path}`);
   const bytes = await readFile(path);
   const dimensions = imageDimensions(bytes, path);
   if (dimensions.width < 1600 || dimensions.height < 900) errors.push(`${path} is too small`);

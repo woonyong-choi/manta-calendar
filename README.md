@@ -15,12 +15,6 @@ Find a note by the date you remember, even when its filename has no date. Link C
 
 **Markdown → automatic timeline → original note.** Optional sync connects selected sources with a dedicated Google calendar. Two-way sync is opt-in.
 
-![Link Calendar Navigator copying a date example, selecting a calendar day, and opening its source note in Obsidian](docs/media/link-calendar-demo.gif)
-
-Calendar view captured with plugin 3.6.0 in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault; this view is unchanged in 3.6.3. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
-
-![Link Calendar Navigator showing a dated note in the actual Obsidian month view](docs/media/link-calendar-overview.png)
-
 <p align="center">
   <a href="obsidian://show-plugin?id=link-calendar">Add to Obsidian</a>
   ·
@@ -28,6 +22,9 @@ Calendar view captured with plugin 3.6.0 in Obsidian 1.13.7 on September 8, 2026
   ·
   <a href="https://community.obsidian.md/plugins/link-calendar">Community page</a>
 </p>
+![Link Calendar Navigator copying a date example, selecting a calendar day, and opening its source note in Obsidian](docs/media/link-calendar-demo.gif)
+
+Calendar view captured with plugin 3.6.0 in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault; this view is unchanged in 3.6.3. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
 
 ## First timeline: one note, one date
 
@@ -245,7 +242,15 @@ Recent captures use desktop Obsidian 1.13.7. They do not represent a fresh mobil
 
 For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
 
-## Support and development
+## Support
+
+Report a reproducible problem or use case through [Issues](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/issues/new/choose). Include your Obsidian version, theme, and a small note without private content.
+
+## Roadmap
+
+The [roadmap](ROADMAP.md) separates available features, work in progress, and ideas under consideration.
+
+## Development
 
 - Read the [changelog](CHANGELOG.md), [roadmap](ROADMAP.md), and [contributor checks](CONTRIBUTING.md).
 - Report a [bug or use case](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/issues/new/choose).
