@@ -17,7 +17,7 @@ Find a note by the date you remember, even when its filename has no date. Link C
 
 ![Link Calendar Navigator copying a date example, selecting a calendar day, and opening its source note in Obsidian](docs/media/link-calendar-demo.gif)
 
-Calendar view captured with plugin 3.6.0 in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault; this view is unchanged in 3.6.2. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
+Calendar view captured with plugin 3.6.0 in Obsidian 1.13.7 on September 8, 2026 using a public sample Vault; this view is unchanged in 3.6.3. The demo shows the empty-month example, date recognition, and source-note navigation. It does not demonstrate a live Google OAuth connection.
 
 ![Link Calendar Navigator showing a dated note in the actual Obsidian month view](docs/media/link-calendar-overview.png)
 
@@ -217,6 +217,8 @@ Removing the plugin leaves every Markdown note and property intact.
 
 ## Troubleshooting
 
+Version 3.6.3 discards late Google token responses after disconnecting and late date reads after rebuilding the index. Disconnecting stays disconnected; disabled or removed date sources do not reappear from an earlier read.
+
 - **A date is missing:** use one of the explicit Markdown forms above or map the note folder as a calendar source. Dates in prose, code, quotes, URLs, comments, hidden paths, and archive/reference folders are intentionally ignored.
 - **A maintenance date is missing:** this is intentional. `created`, `updated`, filesystem timestamps, and similar bookkeeping fields are not automatic events.
 - **Repeated entries:** make each mention link to the same source note and use the same start, end, and temporal kind.
@@ -231,7 +233,7 @@ Removing the plugin leaves every Markdown note and property intact.
 
 ## Installation and compatibility
 
-Current release: **3.6.2**, for Obsidian **1.13.0+** on desktop and mobile.
+Current release: **3.6.3**, for Obsidian **1.13.0+** on desktop and mobile.
 
 | Feature | Desktop | Mobile | Network |
 | --- | --- | --- | --- |

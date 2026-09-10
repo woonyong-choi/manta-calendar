@@ -72,6 +72,38 @@ function fixture() {
   return { caches, files, metadataCache, profile, vault };
 }
 
+it.each(["disable", "remove", "rebuild"])("discards a pending body read after %s", async (operation) => {
+  const f = fixture();
+  const file = testFile("Calendar/Alpha.md");
+  let deliver!: (value: string) => void;
+  const read = new Promise<string>(resolve => { deliver = resolve; });
+  const index = new CalendarIndex({ ...f.vault, cachedRead: () => read } as never, f.metadataCache as never, [], true);
+  const pending = index.updateBody(file);
+  if (operation === "disable") index.setConfiguration([], false);
+  else if (operation === "remove") index.remove(file.path);
+  else index.rebuild();
+  deliver("- Meeting · 2026-09-10");
+  await pending;
+  expect(index.snapshot().events).toEqual([]);
+});
+
+it("keeps the latest body read when an older response arrives after a rebuild", async () => {
+  const f = fixture();
+  const file = testFile("Calendar/Alpha.md");
+  const replies: ((value: string) => void)[] = [];
+  const index = new CalendarIndex({ ...f.vault, cachedRead: () => new Promise<string>(resolve => replies.push(resolve)) } as never, f.metadataCache as never, [], true);
+  const oldRead = index.updateBody(file);
+  index.rebuild();
+  const newRead = index.updateBody(file);
+  const [older, newer] = replies;
+  if (!older || !newer) throw new Error("Both reads must have started");
+  newer("- New meeting · 2026-09-11");
+  await newRead;
+  older("- Old meeting · 2026-09-10");
+  await oldRead;
+  expect(index.snapshot().events.map(event => event.startDate)).toEqual(["2026-09-11"]);
+});
+
 it("refreshes sync inputs from saved notes while metadata is missing or stale", async () => {
   const f = fixture();
   const vault = { ...f.vault, read: async (file: TFile) => file.path.endsWith("Alpha.md")

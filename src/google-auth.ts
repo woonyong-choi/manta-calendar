@@ -56,6 +56,7 @@ export type ConnectionPhase = "idle" | "waiting" | "returned" | "exchanging" | "
 
 export class GoogleAuthManager {
   private phase: ConnectionPhase = "idle";
+  private connectionGeneration = 0;
 
   connectionPhase(): ConnectionPhase {
     if (this.phase === "waiting" || this.phase === "idle") {
@@ -97,6 +98,7 @@ export class GoogleAuthManager {
   }
 
   async completeAuthorization(data: OAuthProtocolData): Promise<void> {
+    const generation = this.connectionGeneration;
     this.phase = "returned";
     try {
       const pending = this.readPending();
@@ -111,24 +113,29 @@ export class GoogleAuthManager {
         relayState: data.relay_state,
         verifier: pending.verifier,
       });
+      this.requireCurrentConnection(generation);
       this.acceptToken(token, true);
       this.phase = "connected";
     } catch (error) {
-      this.phase = "failed";
+      if (generation === this.connectionGeneration) this.phase = "failed";
       throw error;
     }
   }
 
   async getAccessToken(): Promise<string> {
+    const generation = this.connectionGeneration;
     if (this.accessToken && this.accessTokenExpiresAt - this.now() > 60_000) return this.accessToken;
     const refreshToken = this.secrets.getSecret(REFRESH_TOKEN_SECRET);
     if (!refreshToken) throw new GoogleAuthError("Google Calendar is not connected.");
     const token = await this.postToken("oauth/refresh", { refreshToken });
+    this.requireCurrentConnection(generation);
     this.acceptToken(token, false);
     return this.accessToken;
   }
 
   async disconnect(): Promise<void> {
+    // A completed revocation must not be undone by an older token response.
+    this.connectionGeneration += 1;
     const refreshToken = this.secrets.getSecret(REFRESH_TOKEN_SECRET);
     if (refreshToken && this.isAvailable()) {
       const response = await this.http({
@@ -141,11 +148,18 @@ export class GoogleAuthManager {
         throw new GoogleAuthError("Google access could not be revoked. Try again before disconnecting locally.");
       }
     }
+    this.connectionGeneration += 1;
     this.phase = "idle";
     this.accessToken = "";
     this.accessTokenExpiresAt = 0;
     this.secrets.setSecret(REFRESH_TOKEN_SECRET, "");
     this.secrets.setSecret(PENDING_SECRET, "");
+  }
+
+  private requireCurrentConnection(generation: number): void {
+    if (generation !== this.connectionGeneration) {
+      throw new GoogleAuthError("Google connection changed while authorization was pending. Try again from settings.");
+    }
   }
 
   private readPending(): PendingAuthorization {

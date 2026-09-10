@@ -39,7 +39,7 @@ export interface SourceHealth {
 export class CalendarIndex {
   private readonly notes = new Map<string, IndexedNote>();
   private readonly automaticBody = new Map<string, CalendarEvent[]>();
-  private readonly bodyVersions = new Map<string, number>();
+  private readonly bodyReads = new Map<string, symbol>();
   private autoIndexDates: boolean;
   private profiles: SourceProfile[];
   private revision = 0;
@@ -55,6 +55,7 @@ export class CalendarIndex {
   }
 
   rebuild(): void {
+    this.bodyReads.clear();
     this.notes.clear();
     this.automaticBody.clear();
     for (const file of sourceFiles(this.vault, this.profiles)) this.indexFile(file);
@@ -107,7 +108,7 @@ export class CalendarIndex {
   }
 
   remove(path: string): void {
-    this.bodyVersions.set(path, (this.bodyVersions.get(path) ?? 0) + 1);
+    this.bodyReads.delete(path);
     const profileRemoved = this.notes.delete(path);
     const bodyRemoved = this.automaticBody.delete(path);
     const removed = profileRemoved || bodyRemoved;
@@ -216,15 +217,20 @@ export class CalendarIndex {
   }
 
   private async indexBody(file: TFile): Promise<void> {
-    const version = (this.bodyVersions.get(file.path) ?? 0) + 1;
-    this.bodyVersions.set(file.path, version);
+    if (!this.autoIndexDates) return;
+    const path = file.path;
+    const request = Symbol(path);
+    this.bodyReads.set(path, request);
     let markdown: string;
     try {
       markdown = await this.vault.cachedRead(file);
     } catch {
+      if (this.bodyReads.get(path) === request) this.bodyReads.delete(path);
       return;
     }
-    if (this.bodyVersions.get(file.path) !== version) return;
+    if (this.bodyReads.get(path) !== request) return;
+    this.bodyReads.delete(path);
+    if (file.path !== path) return;
     const candidates = extractMarkdownTemporal(file.path, file.basename, markdown);
     if (candidates.length) {
       this.automaticBody.set(

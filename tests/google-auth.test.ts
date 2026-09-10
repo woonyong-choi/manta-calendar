@@ -153,6 +153,26 @@ describe("Google OAuth client", () => {
     expect(auth.isConnected()).toBe(true);
   });
 
+  it.each(["refresh", "authorization"])("does not restore a disconnected account from a late %s response", async (operation) => {
+    const secrets = new MemorySecrets();
+    secrets.setSecret("link-calendar-google-refresh-token", "existing-refresh");
+    let deliver!: (response: GoogleHttpResponse) => void;
+    const tokenResponse = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const auth = manager(secrets, request => request.url.endsWith("/revoke")
+      ? { status: 200, json: {} } : tokenResponse);
+    const url = new URL(await auth.beginAuthorization("en"));
+    const pending = operation === "refresh" ? auth.getAccessToken() : auth.completeAuthorization({
+      code: "code", relay_state: "relay", state: url.searchParams.get("client_state") ?? "",
+    });
+    const rejected = expect(pending).rejects.toThrow("connection changed");
+    await auth.disconnect();
+    deliver({ status: 200, json: { accessToken: "late-access", refreshToken: "late-refresh", expiresIn: 3600, scopes } });
+    await rejected;
+    expect(auth.isConnected()).toBe(false);
+    expect(auth.connectionPhase()).toBe("idle");
+    await expect(auth.getAccessToken()).rejects.toThrow("not connected");
+  });
+
   it("revokes remotely before clearing local secrets", async () => {
     const secrets = new MemorySecrets();
     secrets.setSecret("link-calendar-google-refresh-token", "refresh-secret");
