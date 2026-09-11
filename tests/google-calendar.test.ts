@@ -119,19 +119,67 @@ describe("Google Calendar API boundary", () => {
       .rejects.toThrow("Calendar access was revoked");
   });
 
-  it("respects a remotely deleted dedicated calendar instead of recreating it", async () => {
+  it("preserves an unavailable dedicated calendar until replacement is explicitly requested", async () => {
     const requests: GoogleHttpRequest[] = [];
     const api = client((request) => {
       requests.push(request);
       return { json: { error: { message: "not found" } }, status: 404 };
     });
     await expect(api.ensureAppCalendar(calendar, "Link Calendar", "UTC"))
-      .rejects.toThrow("Disconnect and connect again");
+      .rejects.toThrow("unavailable to this account");
     expect(requests.map((request) => request.method ?? "GET")).toEqual(["GET"]);
+  });
+
+  it("creates an empty replacement only after an explicit request and a 404", async () => {
+    const requests: GoogleHttpRequest[] = [];
+    const replacement = { id: "new-calendar", name: "Link Calendar", timeZone: "Asia/Seoul" };
+    const api = client((request) => {
+      requests.push(request);
+      return request.url.endsWith(encodeURIComponent(calendar.id))
+        ? { json: { error: { message: "not found" } }, status: 404 }
+        : { json: { ...replacement, summary: replacement.name }, status: 200 };
+    });
+    await expect(api.ensureAppCalendar(calendar, "Link Calendar", "Asia/Seoul", true)).resolves.toEqual(replacement);
+    await expect(api.ensureAppCalendar(replacement, "Link Calendar", "Asia/Seoul", true)).resolves.toEqual(replacement);
+    expect(requests.map(request => request.method ?? "GET")).toEqual(["GET", "POST", "GET"]);
+    expect(requests.every(request => !request.url.includes("/events"))).toBe(true);
+  });
+
+  it.each([401, 403, 429, 500])("does not replace a calendar on HTTP %s", async (status) => {
+    const requests: GoogleHttpRequest[] = [];
+    const api = client(request => {
+      requests.push(request);
+      return { json: { error: { message: "unavailable" } }, status };
+    });
+    await expect(api.ensureAppCalendar(calendar, "Link Calendar", "UTC", true)).rejects.toThrow("unavailable");
+    expect(requests.map(request => request.method ?? "GET")).toEqual(["GET"]);
   });
 });
 
 describe("one-way Google synchronization", () => {
+  it("keeps old calendar mappings and sends only allowed notes to a new calendar", async () => {
+    const records: GoogleSyncRecord[] = Array.from({ length: 7 }, (_, index) => ({
+      calendarId: "old-calendar", etag: `etag-${String(index)}`, eventId: `remote-${String(index)}`,
+      fingerprint: "old", localKey: `profile\u0000Calendar/${String(index)}.md`,
+    }));
+    const original = structuredClone(records);
+    const requests: GoogleHttpRequest[] = [];
+    const result = await syncGoogleCalendar({
+      calendar, defaultDurationMinutes: 60, installationId: "installation", records, sourceProfileIds: ["profile"],
+      client: client(request => {
+        requests.push(request);
+        return { json: { etag: "new-etag", id: "new-event" }, status: 200 };
+      }),
+      events: [event({ filePath: "Calendar/0.md" }), event({ filePath: "Calendar/Private.md", externalSync: "deny" })],
+    });
+    expect(result).toMatchObject({ created: 1, updated: 0, syncDenied: 1 });
+    expect(result.records.slice(0, 7)).toEqual(original);
+    expect(records).toEqual(original);
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.url).toContain(encodeURIComponent(calendar.id));
+    expect(requests[0]?.body).not.toContain("Private");
+  });
+
   it("honors explicit sync denial while allowing selected read-only local notes", async () => {
     const requests: GoogleHttpRequest[] = [];
     const api = client((request) => {

@@ -68,6 +68,7 @@ export class GoogleCalendarClient {
     current: GoogleCalendarTarget | null,
     name: string,
     timeZone: string,
+    replaceUnavailable = false,
   ): Promise<GoogleCalendarTarget> {
     if (current) {
       try {
@@ -76,13 +77,13 @@ export class GoogleCalendarClient {
         });
         return calendarTarget(response.json, current);
       } catch (error) {
-        if (error instanceof GoogleApiError && error.status === 404) {
+        if (!(error instanceof GoogleApiError) || error.status !== 404) throw error;
+        if (!replaceUnavailable) {
           throw new GoogleApiError(
             404,
-            "The dedicated Google calendar no longer exists. Disconnect and connect again to create a new one.",
+            "The dedicated Google calendar is unavailable to this account. Use Create calendar if unavailable in settings to create an empty replacement while keeping mappings.",
           );
         }
-        throw error;
       }
     }
     const response = await this.request({

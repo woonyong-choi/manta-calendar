@@ -31,7 +31,7 @@ The plugin creates one dedicated secondary calendar named **Link Calendar**. No 
 | Unsupported imports | Recurring/special events, sub-minute times, invalid ranges, incomplete or overlapping property maps are reported and preserved |
 | Local deletion | Leaves the remote event untouched |
 | Google deletion | Reports a conflict and preserves the note |
-| Remote calendar deletion | Stops sync; reconnecting is required before a new dedicated calendar is created |
+| Unavailable calendar | Stops sync; an explicit recovery action can create an empty replacement while keeping old mappings |
 | Obsidian closed | No new sync; existing Google notifications continue normally |
 
 Stable local keys and deterministic Google event IDs make a retry idempotent. A 409 response is adopted only when the remote private ownership marker matches; otherwise it is reported as a conflict. A mapping without an ETag is rejected, so updates can never fall back to an unconditional overwrite.
@@ -94,5 +94,7 @@ npm exec --yes wrangler@4.128.0 -- deploy --dry-run --config oauth-worker/wrangl
 ```
 
 ## Connection recovery
+
+If the saved calendar is unavailable after changing accounts, **Create calendar if unavailable** first checks that calendar. A 404 response permits creating an empty **Link Calendar** only for this explicit action; other errors stop recovery. A 404 can mean that the current account cannot access the calendar, so it does not prove deletion. Existing calendars, events, source selections, authorization and per-calendar mappings are preserved. Recovery does not sync events. A later **Sync now** sends allowed notes to the new calendar; it does not move or remove events from the old calendar.
 
 The settings page exposes a refreshable connection stage. Waiting means browser authorization or the return to the originating Vault has not completed; it does not mean token exchange succeeded. Use the completion page's Open Obsidian action, return to the intended Vault, then refresh connection status. Expired requests must be restarted. Failed exchange is distinct from a connected account or a usable destination calendar. Share only OS, browser, Obsidian version and stage when reporting problems; do not share callback URLs or tokens. This diagnostic does not establish that the previously reported user-specific handoff failure is fixed.

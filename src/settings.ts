@@ -29,7 +29,7 @@ export interface SettingsHost {
   googleAvailable(): boolean;
   googleConnected(): boolean;
   googleConnectionPhase?(): ConnectionPhase;
-  ensureGoogleCalendar(): Promise<void>;
+  ensureGoogleCalendar(options?: { showFailure?: boolean; replaceUnavailable?: boolean }): Promise<void>;
   saveSettings(rebuildIndex?: boolean): Promise<void>;
   sourceHealth(profile: SourceProfile): SourceHealth;
   syncGoogleCalendar(): Promise<void>;
@@ -248,6 +248,11 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
           button.onClick(() => { void this.host.ensureGoogleCalendar().then(() => this.update()); });
         });
       },
+    });
+    if (google.calendar) items.push({
+      name: translate(locale, "googleReplaceUnavailable"),
+      desc: translate(locale, "googleReplaceUnavailableDesc"),
+      action: () => { void this.host.ensureGoogleCalendar({ replaceUnavailable: true }).then(() => this.update()); },
     });
     items.push({
       name: translate(locale, "googleDefaultDuration"),

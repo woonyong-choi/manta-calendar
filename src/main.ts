@@ -166,7 +166,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
       this.registerIndexEvents();
       void this.index.rebuildBodies().then(() => this.publishSnapshot());
       if (this.settings.googleCalendar.enabled && this.googleAuth.isConnected()) {
-        void this.ensureGoogleCalendar(false);
+        void this.ensureGoogleCalendar({ showFailure: false });
       }
     });
   }
@@ -353,19 +353,24 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     this.settingsTab.update();
   }
 
-  async ensureGoogleCalendar(showFailure = true): Promise<void> {
+  async ensureGoogleCalendar({ showFailure = true, replaceUnavailable = false } = {}): Promise<void> {
+    if (this.googleSyncRunning) return;
     if (!this.googleAuth.isConnected()) {
       if (showFailure) new Notice(translate(this.settings.locale, "googleConnectionRequired"));
       return;
     }
+    this.googleSyncRunning = true;
     try {
-      this.settings.googleCalendar.calendar = await this.resolveGoogleCalendar();
+      this.settings.googleCalendar.calendar = await this.resolveGoogleCalendar(replaceUnavailable);
       await this.saveSettings();
       this.settingsTab.update();
+      if (replaceUnavailable) new Notice(translate(this.settings.locale, "googleCalendarReady"));
     } catch (error) {
       if (showFailure) {
         new Notice(error instanceof Error ? error.message : translate(this.settings.locale, "googleSyncFailed"));
       }
+    } finally {
+      this.googleSyncRunning = false;
     }
   }
 
@@ -499,12 +504,13 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     );
   }
 
-  private async resolveGoogleCalendar(): Promise<NonNullable<CalendarSettings["googleCalendar"]["calendar"]>> {
+  private async resolveGoogleCalendar(replaceUnavailable = false): Promise<NonNullable<CalendarSettings["googleCalendar"]["calendar"]>> {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
     return this.googleClient().ensureAppCalendar(
       this.settings.googleCalendar.calendar,
       "Link Calendar",
       timeZone,
+      replaceUnavailable,
     );
   }
 

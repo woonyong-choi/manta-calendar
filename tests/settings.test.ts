@@ -77,7 +77,7 @@ describe("Google Calendar settings boundary", () => {
     expect(fixture.saveSettings).toHaveBeenCalledOnce();
   });
 
-  it("exposes only explicit source mappings after connection", () => {
+  it("exposes explicit calendar recovery separately from source synchronization", () => {
     const profile = createProfile("Calendar");
     profile.id = "calendar-source";
     profile.name = "Calendar notes";
@@ -97,5 +97,12 @@ describe("Google Calendar settings boundary", () => {
     expect(labels).toContain("Sync source: Calendar notes");
     expect(labels).toContain("Sync now");
     expect(labels).not.toContain("Automatic date index");
+    const recovery = googleItems(fixture.tab).find(item => item.name === "Create calendar if unavailable");
+    expect(recovery).toBeDefined();
+    if (!recovery || !("action" in recovery) || typeof recovery.action !== "function") throw new Error("missing recovery action");
+    recovery.action(document.createElement("button"), 0);
+    expect(fixture.host.ensureGoogleCalendar).toHaveBeenCalledWith({ replaceUnavailable: true });
+    expect(fixture.host.disconnectGoogle).not.toHaveBeenCalled();
+    expect(fixture.host.syncGoogleCalendar).not.toHaveBeenCalled();
   });
 });
