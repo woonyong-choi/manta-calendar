@@ -143,6 +143,32 @@ function folderTree(files: TFile[]): Map<string, TFolder> {
 }
 
 describe("CalendarIndex", () => {
+  it("merges body evidence without changing the mapped event or sharing snapshot arrays", async () => {
+    const { files, metadataCache, profile, vault } = fixture();
+    const evidenceFile = files[2];
+    if (!evidenceFile) throw new Error("missing body evidence fixture");
+    const index = new CalendarIndex({
+      ...vault,
+      cachedRead: async () => "- [[Calendar/Alpha|First mention]] · 2026-08-18 → 2026-08-19\n- [[Calendar/Alpha|Second mention]] · 2026-08-18 → 2026-08-19",
+    } as never, metadataCache as never, [profile]);
+    index.rebuild();
+    await index.updateBody(evidenceFile);
+
+    const snapshot = index.snapshot();
+    expect(snapshot.events).toHaveLength(1);
+    expect(snapshot.events[0]).toMatchObject({
+      title: "Alpha event", origin: "profile", editable: true,
+      startTime: "2026-08-18T16:00:00+09:00", category: "Learning",
+    });
+    expect(snapshot.events[0]?.sources.map(source => [source.filePath, source.line])).toEqual([
+      ["Calendar/Alpha.md", 0], ["People/Jane.md", 1], ["People/Jane.md", 2],
+    ]);
+    const expected = structuredClone(snapshot);
+    expect(index.snapshot()).toEqual(expected);
+    snapshot.events[0]?.sources.pop();
+    expect(index.snapshot()).toEqual(expected);
+  });
+
   it("keeps explicit external sync denial independent from edit permission", () => {
     const { caches, metadataCache, profile, vault } = fixture();
     const cached = caches.get("Calendar/Alpha.md");

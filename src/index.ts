@@ -391,21 +391,23 @@ function mergeTemporalEvents(events: CalendarEvent[]): CalendarEvent[] {
     const key = [event.filePath, event.startDate, event.endDate, event.kind].join("\u0000");
     const previous = merged.get(key);
     if (!previous) {
-      merged.set(key, { ...event, sources: distinctSources(event.sources) });
+      merged.set(key, { ...event, sources: [...event.sources] });
       continue;
     }
     const preferred = originPriority(event.origin) > originPriority(previous.origin)
       ? event
       : previous;
     const fallback = preferred === event ? previous : event;
+    previous.sources.push(...event.sources);
     merged.set(key, {
       ...preferred,
       category: preferred.category || fallback.category,
       ongoing: preferred.ongoing || fallback.ongoing,
-      sources: distinctSources([...previous.sources, ...event.sources]),
+      sources: previous.sources,
     });
   }
-  return [...merged.values()];
+  // Normalize evidence once per event instead of re-sorting every growing prefix.
+  return [...merged.values()].map(event => ({ ...event, sources: distinctSources(event.sources) }));
 }
 
 function distinctSources(sources: TemporalSource[]): TemporalSource[] {
