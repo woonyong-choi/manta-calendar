@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.6.5
 
 - Add explicit recovery for a dedicated Google calendar that is unavailable to the connected account. Create an empty replacement only after a 404, keeping authorization, source selections, existing calendars, events and per-calendar mappings. Recovery does not sync events.
 - Preserve the default no-replacement behavior during startup and refresh, and prevent overlapping calendar creation and synchronization.
