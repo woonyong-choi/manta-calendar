@@ -206,7 +206,7 @@ Version 3.6.3 discards late Google token responses after disconnecting and late 
 
 ## Installation and compatibility
 
-Current release: **3.6.3**, for Obsidian **1.13.0+** on desktop and mobile.
+Current release: **3.6.4**, for Obsidian **1.13.0+** on desktop and mobile.
 
 | Feature | Desktop | Mobile | Network |
 | --- | --- | --- | --- |

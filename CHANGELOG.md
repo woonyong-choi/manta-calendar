@@ -2,6 +2,7 @@
 
 ## 3.6.4
 
+- Fix the author profile link after the GitHub account rename.
 - Merge repeated timeline evidence before deduplicating and sorting sources, reducing work for notes that reference the same dated event. Preserve source order, mapped event priority, edit permissions, and independent snapshot arrays.
 
 ## 3.6.2

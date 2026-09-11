@@ -6,7 +6,7 @@ Find dated notes in a calendar and open them with one click.
 
 **[Install in Obsidian](https://community.obsidian.md/plugins/link-calendar) · [Try the demo Vault](https://github.com/woonyong-kr/obsidian-navigator-demo-vault/releases/latest) · [User guide](docs/user-guide.md)**
 
-Available now: **3.6.3** · Obsidian **1.13.0+** · Desktop and mobile. See [release notes](CHANGELOG.md) for shipped changes and the [roadmap](ROADMAP.md) for work in progress and plans.
+Available now: **3.6.4** · Obsidian **1.13.0+** · Desktop and mobile. See [release notes](CHANGELOG.md) for shipped changes and the [roadmap](ROADMAP.md) for work in progress and plans.
 
 ## Install and try
 
@@ -20,7 +20,7 @@ Manual installation: download the three plugin files from [Releases](https://git
 
 ![Link Calendar Navigator walkthrough](docs/media/link-calendar-demo.gif)
 
-Obsidian desktop capture, September 8, 2026 (3.6.0); the illustrated calendar view is unchanged in 3.6.3. Google authentication is not shown.
+Obsidian desktop capture, September 8, 2026 (3.6.0); the illustrated calendar view is unchanged in 3.6.4. Google authentication is not shown.
 
 ## Help and development
 

@@ -5,6 +5,6 @@
   "minAppVersion": "1.13.0",
   "description": "Turn Markdown dates into a low-noise Vault timeline, with optional two-way Google Calendar synchronization.",
   "author": "Woonyong Choi",
-  "authorUrl": "https://github.com/woonyong-kr",
+  "authorUrl": "https://github.com/woonyong-choi",
   "isDesktopOnly": false
 }
