@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.6.4
+
+- Merge repeated timeline evidence before deduplicating and sorting sources, reducing work for notes that reference the same dated event. Preserve source order, mapped event priority, edit permissions, and independent snapshot arrays.
+
 ## 3.6.2
 
 - Add opt-in two-way synchronization for non-recurring events in the dedicated Google calendar. Import new Google events into a selected writable source and receive title/date/time edits without replacing note bodies.
