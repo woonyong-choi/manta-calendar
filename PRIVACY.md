@@ -38,4 +38,4 @@ OAuth uses Authorization Code with PKCE, signed short-lived state, an exact redi
 
 ## Contact
 
-For privacy questions, open a non-sensitive [GitHub Discussion](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/discussions). Do not include private Vault content or credentials. Security-sensitive reports should use GitHub private vulnerability reporting.
+For privacy questions, open a non-sensitive [GitHub Discussion](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/discussions). Do not include private Vault content or credentials. Security-sensitive reports should use GitHub private vulnerability reporting.

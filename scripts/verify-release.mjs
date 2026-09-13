@@ -45,8 +45,8 @@ if (manifest.name !== "Link Calendar Navigator") {
   errors.push("manifest name must be Link Calendar Navigator");
 }
 if (packageJson.name !== "link-calendar") errors.push("package name must be link-calendar");
-if (!packageJson.repository?.url?.endsWith("woonyong-kr/obsidian-link-calendar-navigator.git")) {
-  errors.push("package repository must be woonyong-kr/obsidian-link-calendar-navigator");
+if (!packageJson.repository?.url?.endsWith("woonyong-choi/obsidian-link-calendar-navigator.git")) {
+  errors.push("package repository must be woonyong-choi/obsidian-link-calendar-navigator");
 }
 if (!/^\d+\.\d+\.\d+$/.test(manifest.version)) errors.push("manifest version must use exact x.y.z format");
 if (manifest.version !== packageJson.version) errors.push("manifest/package versions differ");

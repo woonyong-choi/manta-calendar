@@ -28,7 +28,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/woonyong-kr/obsidian-link-calendar-navigator.git"
+    "url": "git+https://github.com/woonyong-choi/obsidian-link-calendar-navigator.git"
   },
   "engines": {
     "node": ">=20"

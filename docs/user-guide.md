@@ -216,5 +216,5 @@ Current release: **3.6.4**, for Obsidian **1.13.0+** on desktop and mobile.
 
 Recent captures use desktop Obsidian 1.13.7. They do not represent a fresh mobile-device test.
 
-For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
+For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
 

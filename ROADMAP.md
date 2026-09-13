@@ -30,4 +30,4 @@ Link Calendar Navigator remains a focused navigator over dated Markdown. The ori
 - Unrequested note rewriting, remote AI, telemetry, or a second event database.
 - Propagating deletions or overwriting simultaneous edits during Google sync.
 
-Use [Issues](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/issues/new/choose) for reproducible bugs and use cases. Broader questions belong in [Discussions](https://github.com/woonyong-kr/obsidian-link-calendar-navigator/discussions).
+Use [Issues](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/issues/new/choose) for reproducible bugs and use cases. Broader questions belong in [Discussions](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/discussions).
