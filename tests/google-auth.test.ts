@@ -200,24 +200,93 @@ describe("desktop OAuth trust boundary", () => {
       reached(); return token;
     });
     secrets.setSecret(secretKey, JSON.stringify({ clientId, refreshToken: "existing" }));
-    const pending = operation === "refresh" ? auth.getAccessToken() : auth.connect("en", approve);
-    const rejected = expect(pending).rejects.toThrow("connection changed");
+    const connection = operation === "authorization" ? await start(auth) : undefined;
+    const browser = connection ? fetch(connection.callback).catch(() => undefined) : undefined;
+    const pending = connection ? connection.done : auth.getAccessToken();
+    const rejected = expect(pending).rejects.toThrow(connection ? "cancelled" : "connection changed");
     await requested;
     await auth.disconnect();
     deliver({ status: 200, json: validToken });
     await rejected;
+    await browser;
     expect(auth.isConnected()).toBe(false);
     expect(auth.connectionPhase()).toBe("idle");
   });
 
   it("does not expose provider error text or send requests when no client is configured", async () => {
     const { auth } = fixture(() => ({ status: 400, json: { error: "invalid_grant", error_description: "private-token" } }));
-    await expect(auth.connect("en", approve)).rejects.toThrow("expired or was revoked");
+    const { callback, done } = await start(auth);
+    const rejected = expect(done).rejects.toThrow("expired or was revoked");
+    const response = await fetch(callback);
+    expect(response.status).toBe(502);
+    const page = await response.text();
+    expect(page).toContain("Google connection could not be completed.");
+    expect(page).not.toContain("private-token");
+    expect(page).not.toContain("Google Calendar is connected.");
+    await rejected;
     const http = vi.fn();
     const unavailable = new GoogleAuthManager("", clientSecret, http, new Secrets());
     await expect(unavailable.connect("en", () => {})).rejects.toThrow("not configured");
     const missingRegistration = new GoogleAuthManager(clientId, "", http, new Secrets());
     await expect(missingRegistration.connect("en", () => {})).rejects.toThrow("not configured");
     expect(http).not.toHaveBeenCalled();
+  });
+
+  it("waits for token storage before showing browser success", async () => {
+    let deliver!: (response: GoogleHttpResponse) => void;
+    let reached!: () => void;
+    const token = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const requested = new Promise<void>(resolve => { reached = resolve; });
+    const { auth } = fixture(() => { reached(); return token; });
+    const { callback, done } = await start(auth);
+    let responded = false;
+    const browser = fetch(callback).then(response => { responded = true; return response.text(); });
+    await requested;
+    expect(responded).toBe(false);
+    expect(auth.isConnected()).toBe(false);
+    expect(auth.connectionPhase()).toBe("exchanging");
+    deliver({ status: 200, json: validToken });
+    expect(await browser).toContain("Google Calendar is connected.");
+    await done;
+    expect(auth.isConnected()).toBe(true);
+  });
+
+  it("finishes valid authorization when the browser closes during token exchange", async () => {
+    let deliver!: (response: GoogleHttpResponse) => void;
+    let reached!: () => void;
+    const token = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const requested = new Promise<void>(resolve => { reached = resolve; });
+    const { auth } = fixture(() => { reached(); return token; });
+    const { callback, done } = await start(auth);
+    const browser = httpRequest(callback);
+    browser.on("error", () => {});
+    browser.end();
+    await requested;
+    const closed = new Promise<void>(resolve => { browser.once("close", resolve); });
+    browser.destroy();
+    await closed;
+    deliver({ status: 200, json: validToken });
+    await done;
+    expect(auth.isConnected()).toBe(true);
+    await expect(fetch(callback)).rejects.toThrow();
+  });
+
+  it("does not store a late token after the connection deadline expires", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    let deliver!: (response: GoogleHttpResponse) => void;
+    let reached!: () => void;
+    const token = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const requested = new Promise<void>(resolve => { reached = resolve; });
+    const { auth } = fixture(() => { reached(); return token; });
+    const { callback, done } = await start(auth);
+    const rejected = expect(done).rejects.toThrow("expired");
+    const browser = fetch(callback).catch(() => undefined);
+    await requested;
+    await vi.advanceTimersByTimeAsync(600000);
+    await rejected;
+    deliver({ status: 200, json: validToken });
+    await browser;
+    expect(auth.isConnected()).toBe(false);
+    expect(auth.connectionPhase()).toBe("expired");
   });
 });

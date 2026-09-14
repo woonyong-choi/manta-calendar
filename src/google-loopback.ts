@@ -4,18 +4,24 @@ import { setTimeout as scheduleTimeout, clearTimeout as cancelTimeout } from "no
 const CALLBACK_PATH = "/oauth/callback";
 const AUTHORIZATION_TIMEOUT = 10 * 60 * 1000;
 
-export async function listenForGoogleAuthorization(state: string, locale: string) {
-  let resolveCode!: (code: string) => void;
-  let rejectCode!: (error: Error) => void;
-  const code = new Promise<string>((resolve, reject) => { resolveCode = resolve; rejectCode = reject; });
-  // A listener can be cancelled before its caller starts awaiting the code.
-  void code.catch(() => {});
+export async function listenForGoogleAuthorization(
+  state: string,
+  locale: string,
+  authorize: (code: string, redirectUri: string, signal: AbortSignal) => Promise<void>,
+) {
+  let resolveCompleted!: () => void;
+  let rejectCompleted!: (error: Error) => void;
+  const completed = new Promise<void>((resolve, reject) => { resolveCompleted = resolve; rejectCompleted = reject; });
+  // A listener can be cancelled before its caller starts awaiting completion.
+  void completed.catch(() => {});
   let origin = "";
   let received = false;
   let finished = false;
+  const controller = new AbortController();
   let timer: ReturnType<typeof scheduleTimeout> | undefined;
   const close = (error: Error = new DOMException("Google connection cancelled.", "AbortError")) => {
-    if (!finished) { finished = true; rejectCode(error); }
+    if (!finished) { finished = true; rejectCompleted(error); }
+    controller.abort(error);
     cancelTimeout(timer);
     timer = undefined;
     server.close();
@@ -38,17 +44,30 @@ export async function listenForGoogleAuthorization(state: string, locale: string
     }
     received = true;
     const denied = parameters.has("error");
-    response.once("finish", () => {
-      if (finished) return;
-      finished = true;
-      if (denied) rejectCode(new DOMException("Google authorization was cancelled. Start again from settings.", "AbortError"));
-      else resolveCode(parameters.get("code") ?? "");
-      close();
-    });
-    response.once("close", () => { if (!finished) close(new Error("The browser closed the Google callback before completion. Try connecting again.")); });
-    respond(response, 200, locale === "ko"
-      ? (denied ? "Google 연결을 취소했습니다. Obsidian으로 돌아가세요." : "Google 승인을 받았습니다. Obsidian으로 돌아가 연결 결과를 확인하세요.")
-      : (denied ? "Google connection cancelled. Return to Obsidian." : "Google approval received. Return to Obsidian to check the connection."));
+    void (async () => {
+      let failure: Error | undefined;
+      try {
+        if (denied) throw new DOMException("Google authorization was cancelled. Start again from settings.", "AbortError");
+        await authorize(parameters.get("code") ?? "", `${origin}${CALLBACK_PATH}`, controller.signal);
+      } catch (error) {
+        failure = error instanceof Error ? error : new Error("Google connection failed.");
+      }
+      if (controller.signal.aborted) return;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        if (failure) rejectCompleted(failure);
+        else resolveCompleted();
+        close();
+      };
+      // Approval remains valid if the user closes the browser during exchange.
+      if (response.destroyed) { finish(); return; }
+      response.once("finish", finish);
+      response.once("close", finish);
+      respond(response, failure && !denied ? 502 : 200, locale === "ko"
+        ? (failure ? "Google 연결을 완료하지 못했습니다. Obsidian 설정에서 다시 연결하세요." : "Google Calendar 연결이 완료되었습니다. 이 창을 닫고 Obsidian으로 돌아가세요.")
+        : (failure ? "Google connection could not be completed. Try connecting again in Obsidian settings." : "Google Calendar is connected. You can close this window and return to Obsidian."), locale);
+    })();
   });
   server.headersTimeout = 5000;
   server.requestTimeout = 5000;
@@ -61,10 +80,10 @@ export async function listenForGoogleAuthorization(state: string, locale: string
   if (!address || typeof address === "string") { close(); throw new Error("Could not open the local Google callback."); }
   origin = `http://127.0.0.1:${String(address.port)}`;
   timer = scheduleTimeout(() => { close(new DOMException("Google connection expired after 10 minutes. Start again.", "TimeoutError")); }, AUTHORIZATION_TIMEOUT);
-  return { redirectUri: `${origin}${CALLBACK_PATH}`, code, close };
+  return { redirectUri: `${origin}${CALLBACK_PATH}`, completed, close };
 }
 
-function respond(response: ServerResponse, status: number, message: string) {
+function respond(response: ServerResponse, status: number, message: string, locale = "en") {
   response.writeHead(status, {
     "Cache-Control": "no-store",
     "Content-Type": "text/html; charset=utf-8",
@@ -74,5 +93,5 @@ function respond(response: ServerResponse, status: number, message: string) {
     "Connection": "close",
   });
   // Only fixed application text is rendered; callback parameters never enter HTML.
-  response.end(`<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Manta Calendar</title><style>:root{color-scheme:light dark;font-family:system-ui}body{max-width:36rem;margin:15vh auto;padding:1.5rem;line-height:1.6}h1{font-size:1.5rem}a{display:inline-block;margin-top:1rem}</style></head><body><h1>Manta Calendar</h1><p>${message}</p><a href="obsidian://open">Open Obsidian</a></body></html>`);
+  response.end(`<!doctype html><html lang="${locale === "ko" ? "ko" : "en"}"><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Manta Calendar</title><style>:root{color-scheme:light dark;font-family:system-ui}body{max-width:36rem;margin:15vh auto;padding:1.5rem;line-height:1.6}h1{font-size:1.5rem}a{display:inline-block;margin-top:1rem}</style></head><body><h1>Manta Calendar</h1><p>${message}</p><a href="obsidian://open">${locale === "ko" ? "Obsidian 열기" : "Open Obsidian"}</a></body></html>`);
 }

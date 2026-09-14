@@ -48,7 +48,11 @@ describe("direct desktop Google authorization", () => {
       const response = await fetch(callback);
       expect(response.status).toBe(200);
       expect(response.headers.get("cache-control")).toBe("no-store");
-      expect(await response.text()).not.toContain("one-use-code");
+      const page = await response.text();
+      expect(page).toContain("Google Calendar 연결이 완료되었습니다.");
+      expect(page).toContain("Obsidian 열기");
+      expect(page).not.toContain("one-use-code");
+      expect(auth.isConnected()).toBe(true);
     });
     expect(auth.isConnected()).toBe(true);
     expect(await auth.getAccessToken()).toBe("access");

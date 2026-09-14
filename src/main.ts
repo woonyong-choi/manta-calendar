@@ -17,7 +17,7 @@ import {
   detectSourceFolder,
   selectProfileFromFrontmatter,
 } from "./index";
-import { formatMessage, translate } from "./i18n";
+import { formatMessage, resolvedLocale, translate } from "./i18n";
 import { GoogleAuthManager } from "./google-auth";
 import {
   GoogleCalendarClient,
@@ -320,7 +320,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
   async connectGoogle(): Promise<void> {
     if (!this.settings.googleCalendar.enabled) return;
     try {
-      const connection = this.googleAuth.connect(this.settings.locale, (url) => {
+      const connection = this.googleAuth.connect(resolvedLocale(this.settings.locale), (url) => {
         window.open(url, "_blank", "noopener,noreferrer");
         new Notice(translate(this.settings.locale, "googleConnectionStarted"));
       });

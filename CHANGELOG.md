@@ -7,6 +7,7 @@
 - Remove the maintainer-domain OAuth relay, its deployment workflow, and the pasted return-link flow from the plugin source and build. Existing deployed 3.x relay infrastructure is separate and is not deleted by this release.
 - Require one new Google sign-in after upgrading, preserving existing calendars, selected sources, installation identity, and event mappings. Ignore legacy relay credentials.
 - Add connection cancellation and close the listener on completion, cancellation, expiry, or plugin unload. Add macOS and Windows socket tests and reject release builds with incomplete Desktop registration or relay dependencies.
+- Show success in the browser only after Google tokens are validated and saved. Show a retry message on failure and use the selected language for the browser flow.
 
 ## 3.6.6
 

@@ -44,7 +44,17 @@ export class GoogleAuthManager {
     const verifier = randomBase64Url(64);
     let listener: Awaited<ReturnType<typeof listenForGoogleAuthorization>> | undefined;
     try {
-      listener = await listenForGoogleAuthorization(state, locale);
+      listener = await listenForGoogleAuthorization(state, locale, async (code, redirectUri, signal) => {
+        this.requireCurrentConnection(generation);
+        this.phase = "exchanging";
+        const token = await this.postToken({
+          code, code_verifier: verifier, grant_type: "authorization_code", redirect_uri: redirectUri,
+        });
+        this.requireCurrentConnection(generation);
+        signal.throwIfAborted();
+        this.acceptToken(token, true);
+        this.phase = "connected";
+      });
       this.requireCurrentConnection(generation);
       this.pending = listener;
       const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -62,15 +72,7 @@ export class GoogleAuthManager {
       }).toString();
       this.requireCurrentConnection(generation);
       await openBrowser(url.toString());
-      const code = await listener.code;
-      this.requireCurrentConnection(generation);
-      this.phase = "exchanging";
-      const token = await this.postToken({
-        code, code_verifier: verifier, grant_type: "authorization_code", redirect_uri: listener.redirectUri,
-      });
-      this.requireCurrentConnection(generation);
-      this.acceptToken(token, true);
-      this.phase = "connected";
+      await listener.completed;
     } catch (error) {
       if (generation === this.connectionGeneration) {
         this.phase = error instanceof Error && error.name === "TimeoutError" ? "expired" : "failed";
