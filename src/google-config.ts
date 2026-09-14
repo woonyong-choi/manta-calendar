@@ -1,3 +1,5 @@
 declare const __MANTA_GOOGLE_CLIENT_ID__: string;
+declare const __MANTA_GOOGLE_CLIENT_SECRET__: string;
 
 export const GOOGLE_OAUTH_CLIENT_ID = __MANTA_GOOGLE_CLIENT_ID__;
+export const GOOGLE_OAUTH_CLIENT_SECRET = __MANTA_GOOGLE_CLIENT_SECRET__;

@@ -22,6 +22,7 @@ export class GoogleAuthManager {
 
   constructor(
     private readonly clientId: string,
+    private readonly clientSecret: string,
     private readonly http: GoogleHttpClient,
     private readonly secrets: SecretStore,
     private readonly now: () => number = () => Date.now(),
@@ -31,8 +32,8 @@ export class GoogleAuthManager {
     return this.phase === "idle" && this.isConnected() ? "connected" : this.phase;
   }
 
-  isAvailable(): boolean { return /^\d+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(this.clientId); }
-  isConnected(): boolean { return Boolean(this.refreshToken()); }
+  isAvailable(): boolean { return /^\d+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(this.clientId) && Boolean(this.clientSecret); }
+  isConnected(): boolean { return this.isAvailable() && Boolean(this.refreshToken()); }
 
   async connect(locale: string, openBrowser: (url: string) => void | Promise<void>): Promise<void> {
     if (!this.isAvailable()) throw new Error("Google desktop connection is not configured.");
@@ -136,7 +137,9 @@ export class GoogleAuthManager {
       url: TOKEN_URL,
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ client_id: this.clientId, ...parameters }).toString(),
+      // Google requires this Desktop app registration value even with PKCE.
+      // It identifies the distributed app; it is not a user credential.
+      body: new URLSearchParams({ client_id: this.clientId, client_secret: this.clientSecret, ...parameters }).toString(),
     });
     if (response.status < 200 || response.status >= 300) {
       const reason = isRecord(response.json) && response.json.error === "invalid_grant"

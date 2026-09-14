@@ -14,7 +14,7 @@
     "test:desktop": "vitest run tests/google-desktop.test.ts tests/google-auth.test.ts",
     "test:visual": "node scripts/verify-visual-fixture.mjs",
     "verify": "npm run check && npm run knip && npm test && npm run test:visual && npm run build && node scripts/verify-google-build.mjs && node scripts/verify-release.mjs",
-    "verify:release": "npm run verify",
+    "verify:release": "npm run verify && node scripts/verify-google-build.mjs --require-configured",
     "test:coverage": "vitest run --coverage"
   },
   "keywords": [

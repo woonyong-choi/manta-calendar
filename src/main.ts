@@ -27,7 +27,7 @@ import {
   syncGoogleCalendar as runGoogleSync,
 } from "./google-calendar";
 import { googleNoteChanges } from "./google-note";
-import { GOOGLE_OAUTH_CLIENT_ID } from "./google-config";
+import { GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET } from "./google-config";
 import {
   type CalendarEvent,
   type CalendarSettings,
@@ -77,6 +77,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     this.settings = normalizeSettings(await this.loadData());
     this.googleAuth = new GoogleAuthManager(
       GOOGLE_OAUTH_CLIENT_ID,
+      GOOGLE_OAUTH_CLIENT_SECRET,
       (request) => this.googleRequest(request),
       this.app.secretStorage,
     );

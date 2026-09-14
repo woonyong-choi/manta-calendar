@@ -1,5 +1,5 @@
 import esbuild from "esbuild";
-import { googleClientId } from "./scripts/google-build-config.mjs";
+import { googleClientId, googleClientSecret } from "./scripts/google-build-config.mjs";
 
 const production = process.argv[2] === "production";
 const context = await esbuild.context({
@@ -7,6 +7,7 @@ const context = await esbuild.context({
   bundle: true,
   define: {
     __MANTA_GOOGLE_CLIENT_ID__: JSON.stringify(googleClientId),
+    __MANTA_GOOGLE_CLIENT_SECRET__: JSON.stringify(googleClientSecret),
   },
   external: ["node:http", "node:timers", "obsidian", "electron", "@codemirror/*", "@lezer/*"],
   format: "cjs",

@@ -6,7 +6,7 @@
 - Connect each user's Google account directly from their computer with a Google Desktop app client, the default browser, and a temporary loopback callback protected by PKCE and random state. Token exchange, refresh, and revocation go directly to Google.
 - Remove the maintainer-domain OAuth relay, its deployment workflow, and the pasted return-link flow from the plugin source and build. Existing deployed 3.x relay infrastructure is separate and is not deleted by this release.
 - Require one new Google sign-in after upgrading, preserving existing calendars, selected sources, installation identity, and event mappings. Ignore legacy relay credentials.
-- Add connection cancellation and close the listener on completion, cancellation, expiry, or plugin unload. Add macOS and Windows socket tests and reject release builds with missing client IDs or relay dependencies.
+- Add connection cancellation and close the listener on completion, cancellation, expiry, or plugin unload. Add macOS and Windows socket tests and reject release builds with incomplete Desktop registration or relay dependencies.
 
 ## 3.6.6
 

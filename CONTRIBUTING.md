@@ -7,7 +7,7 @@ npm ci
 npm run verify
 ```
 
-The default build uses the public Desktop app client ID in `google-oauth-client.json`; Google Calendar remains off until the user connects and selects sources. Fork maintainers register their own Desktop app in Google Cloud and replace that public ID. End users do not configure developer credentials. Never paste a downloaded credentials JSON or a web client secret into the repository. An empty client ID permits local development with Google connection disabled; release verification rejects it.
+The build uses the public Desktop app client ID in `google-oauth-client.json` and the `MANTA_GOOGLE_DESKTOP_CLIENT_SECRET` environment variable. Without the latter, local development and tests work with Google sign-in disabled. Official CI and releases receive that value from GitHub Actions secrets. Release verification requires both values. Fork maintainers register their own Desktop app and supply their own build values; end users install the release and never configure developer credentials. Never commit downloaded credential JSON or a client secret. The Desktop registration value is embedded in distributed builds and cannot be confidential; user credentials remain separate in Obsidian SecretStorage. See [the registration contract](docs/google-calendar.md#app-registration-and-release).
 
 Changes to date parsing, source capabilities, file mutation, OAuth, or remote projection require a regression test. Network code must remain inside the Google adapters, default off, and least privilege. Never commit credentials, tokens, telemetry, request-body logging, Vault-external paths, or direct filesystem writes. UI changes must be checked in Obsidian light and dark themes at desktop and narrow widths.
 

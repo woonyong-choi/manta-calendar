@@ -198,7 +198,7 @@ Version 3.6.3 discards late Google token responses after disconnecting and late 
 - **Create or drag is unavailable:** automatic items are read-only; enable a valid writable folder profile for mutations.
 - **A move was rejected:** the Markdown changed after indexing or no longer matches the configured source.
 - **Search shows no results:** clear the query and source filters to restore the month.
-- **Google Calendar is unavailable:** use the official desktop release. Development builds need a registered public Desktop app client ID. End users do not enter developer credentials.
+- **Google Calendar is unavailable:** use the official desktop release. Development builds need the maintainer's Desktop app registration values. End users do not enter developer credentials.
 - **Google connection stays waiting:** keep Obsidian open on the computer where you started. Complete Google approval in that computer's default browser; return to Obsidian to check the result. Cancel and reconnect if ten minutes pass or the callback is blocked. Check whether a firewall prevents Obsidian from receiving loopback connections; do not disable your firewall globally.
 - **Upgrading from 3.x:** connect Google once again on each computer. Existing calendars, source selections, and mappings are preserved. Old authorization links and relay tokens are no longer used.
 - **A Google event was not overwritten:** check the sync summary. A remote ETag change is reported as a conflict instead of being replaced.

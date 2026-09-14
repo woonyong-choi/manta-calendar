@@ -3,7 +3,7 @@ import type { App, PluginManifest } from "obsidian";
 import LinkCalendarPlugin from "../src/main";
 import type { GoogleHttpRequest } from "../src/google-calendar";
 
-vi.mock("../src/google-config", () => ({ GOOGLE_OAUTH_CLIENT_ID: "1234567890-desktop.apps.googleusercontent.com" }));
+vi.mock("../src/google-config", () => ({ GOOGLE_OAUTH_CLIENT_ID: "1234567890-desktop.apps.googleusercontent.com", GOOGLE_OAUTH_CLIENT_SECRET: "desktop-test-registration" }));
 vi.mock("obsidian", async importOriginal => ({
   ...await importOriginal<object>(),
   Plugin: vi.fn(),

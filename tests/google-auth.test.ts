@@ -10,6 +10,7 @@ vi.mock("node:timers", () => ({
 }));
 
 const clientId = "1234567890-desktop.apps.googleusercontent.com";
+const clientSecret = "desktop-test-registration";
 const scope = "https://www.googleapis.com/auth/calendar.app.created";
 const secretKey = "link-calendar-google-desktop-authorization";
 const validToken = { access_token: "access", refresh_token: "refresh", expires_in: 3600, scope, token_type: "Bearer" };
@@ -25,7 +26,7 @@ class Secrets implements SecretStore {
 function fixture(handler?: (request: GoogleHttpRequest) => GoogleHttpResponse | Promise<GoogleHttpResponse>) {
   const secrets = new Secrets();
   const requests: GoogleHttpRequest[] = [];
-  const auth = new GoogleAuthManager(clientId, async request => {
+  const auth = new GoogleAuthManager(clientId, clientSecret, async request => {
     requests.push(request);
     return handler ? handler(request) : { status: 200, json: validToken };
   }, secrets);
@@ -213,8 +214,10 @@ describe("desktop OAuth trust boundary", () => {
     const { auth } = fixture(() => ({ status: 400, json: { error: "invalid_grant", error_description: "private-token" } }));
     await expect(auth.connect("en", approve)).rejects.toThrow("expired or was revoked");
     const http = vi.fn();
-    const unavailable = new GoogleAuthManager("", http, new Secrets());
+    const unavailable = new GoogleAuthManager("", clientSecret, http, new Secrets());
     await expect(unavailable.connect("en", () => {})).rejects.toThrow("not configured");
+    const missingRegistration = new GoogleAuthManager(clientId, "", http, new Secrets());
+    await expect(missingRegistration.connect("en", () => {})).rejects.toThrow("not configured");
     expect(http).not.toHaveBeenCalled();
   });
 });

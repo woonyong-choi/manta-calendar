@@ -17,13 +17,13 @@ Google Calendar is disabled by default. Enabling it does not write remotely unti
 - State, the PKCE verifier, and the authorization code remain in memory. The callback page has no external resources, no caching, and no callback parameters in its HTML.
 - The plugin requests only `calendar.app.created`, so it can create and access the dedicated calendar and its events, not primary or unrelated calendars.
 - Refresh tokens are stored through Obsidian `SecretStorage`, never `data.json`, URLs, source code, or logs.
-- Token exchange, refresh, and revocation go directly to Google over HTTPS. The bundle contains a public client ID and no client secret. No Manta domain or Cloudflare Worker participates in version 4 authentication.
+- Token exchange, refresh, and revocation go directly to Google over HTTPS. Google requires the Desktop app's `client_secret` registration value for exchange and refresh; release builds embed it through a build environment variable, never a tracked credentials file. As [Google explains for installed apps](https://developers.google.com/identity/protocols/oauth2#installed), it cannot be kept confidential in a distributed app. It is not a user token or a substitute for user consent and PKCE. No web-client credential, Manta domain, or Cloudflare Worker participates in version 4 authentication.
 - Event requests go directly from Obsidian to Google Calendar. No token or request body is logged.
 - The direct refresh token is bound to its client ID in SecretStorage. Legacy relay credentials are ignored. Late responses cannot restore a disconnected account.
 - Every persisted mapping requires an ETag; updates use the previous ETag and stop on missing or remote-changed values.
 - Missing local events never cause remote deletion.
 
-The desktop-only manifest excludes Obsidian mobile. Builds and releases check the configured public client ID, direct Google endpoints, desktop requirement, and absence of relay URLs or secret material. Integration tests exercise real loopback sockets on macOS and Windows; an actual Google sign-in remains a separate release validation.
+The desktop-only manifest excludes Obsidian mobile. Builds and releases check the configured Desktop registration, direct Google endpoints, desktop requirement, and absence of relay URLs or unexpected OAuth credentials. Release verification rejects missing registration values. Integration tests exercise real loopback sockets on macOS and Windows; an actual Google sign-in remains a separate release validation.
 
 See [PRIVACY.md](PRIVACY.md) for the user-facing Google data disclosure and [docs/google-calendar.md](docs/google-calendar.md) for the exact synchronization contract.
 
