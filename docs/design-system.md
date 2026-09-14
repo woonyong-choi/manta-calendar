@@ -1,8 +1,8 @@
-# Link Calendar Navigator design contract
+# Manta Calendar design contract
 
 ## Product boundary
 
-Link Calendar Navigator is a derived navigation surface over canonical Markdown.
+Manta Calendar is a derived navigation surface over canonical Markdown.
 
 - It derives a read-only timeline from explicit Markdown body date forms across active Vault notes.
 - Explicit body entries may include 24-hour wall-clock times; display format is a presentation preference and never converts the authored clock value.
@@ -11,7 +11,7 @@ Link Calendar Navigator is a derived navigation surface over canonical Markdown.
 - Optional source profiles are the only path for custom frontmatter property mappings and explicitly guarded writes.
 - One timeline identity is canonical target, start date, end date, and temporal kind. Matching sources are merged.
 - Every agenda result exposes a direct action to the canonical note.
-- Link Calendar Navigator owns presentation state only: visible month, selected date, search query, source filter, and open/closed agenda.
+- Manta Calendar owns presentation state only: visible month, selected date, search query, source filter, and open/closed agenda.
 
 ## Information hierarchy
 

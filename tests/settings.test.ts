@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import type { App, SettingGroupItem } from "obsidian";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PluginSettingTab, type App, type SettingGroupItem } from "obsidian";
 
 import { DEFAULT_SETTINGS, createProfile, normalizeSettings, serializeSettings, type CalendarSettings } from "../src/model";
 import { LinkCalendarSettingTab, type SettingsHost } from "../src/settings";
@@ -50,6 +50,71 @@ function isGoogleGroup(value: unknown): value is {
     && "items" in value
     && Array.isArray(value.items);
 }
+
+describe("Obsidian 1.12 settings compatibility", () => {
+  const nativeUpdate = Object.getOwnPropertyDescriptor(PluginSettingTab.prototype, "update");
+  beforeEach(() => { Reflect.deleteProperty(PluginSettingTab.prototype, "update"); });
+  afterEach(() => {
+    if (nativeUpdate) Object.defineProperty(PluginSettingTab.prototype, "update", nativeUpdate);
+  });
+
+  it("finishes initialization before the settings tab is mounted", () => {
+    const fixture = tab();
+    expect(() => fixture.tab.update()).not.toThrow();
+    expect(fixture.tab.containerEl.childElementCount).toBe(0);
+  });
+
+  it("keeps using the native refresh API when available", () => {
+    const update = vi.fn();
+    Object.defineProperty(PluginSettingTab.prototype, "update", { configurable: true, value: update });
+    const fixture = tab();
+    fixture.tab.update();
+    expect(update).toHaveBeenCalledOnce();
+    expect(update.mock.instances[0]).toBe(fixture.tab);
+  });
+
+  it("renders controls and persists changes through the existing settings host", async () => {
+    const fixture = tab({ locale: "en" });
+    document.body.append(fixture.tab.containerEl);
+    fixture.tab.display();
+    const select = fixture.tab.containerEl.querySelector<HTMLSelectElement>('[data-name="Language"] select');
+    expect(select).not.toBeNull();
+    if (!select) throw new Error("missing language dropdown");
+    select.value = "ko";
+    select.dispatchEvent(new Event("change"));
+    await vi.waitFor(() => expect(fixture.saveSettings).toHaveBeenCalledOnce());
+    expect(fixture.host.settings.locale).toBe("ko");
+    expect(fixture.tab.containerEl.querySelector('[data-name="언어"]')).not.toBeNull();
+    expect(fixture.host.connectGoogle).not.toHaveBeenCalled();
+  });
+
+  it("keeps editable source drafts and the apply action available", async () => {
+    const profile = createProfile("Calendar");
+    const fixture = tab({ locale: "en", profiles: [profile] });
+    document.body.append(fixture.tab.containerEl);
+    fixture.tab.display();
+    const source = fixture.tab.containerEl.querySelector("details");
+    expect(source?.querySelector("summary")?.textContent).toBe(profile.name);
+    const name = source?.querySelector<HTMLInputElement>('[data-name="Name"] input');
+    if (!name) throw new Error("missing source name field");
+    name.value = "Project dates";
+    name.dispatchEvent(new Event("input"));
+    expect(profile.name).not.toBe("Project dates");
+    source?.querySelector<HTMLButtonElement>('[data-name="Apply"] button')?.click();
+    await vi.waitFor(() => expect(fixture.saveSettings).toHaveBeenCalledWith(true));
+    expect(profile.name).toBe("Project dates");
+  });
+
+  it.each([false, true])("renders Google settings without starting a connection (connected=%s)", (connected) => {
+    const fixture = tab({ locale: "en", profiles: [createProfile("Calendar")] }, connected);
+    fixture.host.settings.googleCalendar.enabled = true;
+    if (connected) fixture.host.settings.googleCalendar.calendar = { id: "dedicated", name: "Calendar", timeZone: "UTC" };
+    fixture.tab.display();
+    expect(fixture.tab.containerEl.querySelectorAll(".setting-item").length).toBeGreaterThan(15);
+    expect(fixture.host.connectGoogle).not.toHaveBeenCalled();
+    expect(fixture.host.syncGoogleCalendar).not.toHaveBeenCalled();
+  });
+});
 
 describe("Google Calendar settings boundary", () => {
   it("keeps two-way opt-in and its selected source after restarting", async () => {

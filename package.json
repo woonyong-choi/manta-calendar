@@ -1,6 +1,6 @@
 {
   "name": "link-calendar",
-  "version": "3.6.5",
+  "version": "3.6.6",
   "description": "Turn Markdown dates into a low-noise Vault timeline, with optional two-way Google Calendar synchronization.",
   "main": "main.js",
   "scripts": {
@@ -28,7 +28,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/woonyong-choi/obsidian-link-calendar-navigator.git"
+    "url": "git+https://github.com/woonyong-choi/manta-calendar.git"
   },
   "engines": {
     "node": ">=20"

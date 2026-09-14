@@ -40,7 +40,7 @@ export function parseGoogleReturnLink(value: string): OAuthProtocolData {
   catch { throw new GoogleAuthError("Paste the link from the Open Obsidian button, not the Google page address."); }
   if (url.protocol !== "obsidian:" || url.hostname !== "link-calendar-google"
     || url.pathname !== "" || url.username || url.password || url.port || url.hash) {
-    throw new GoogleAuthError("This is not a Link Calendar authorization return link.");
+    throw new GoogleAuthError("This is not a Manta Calendar authorization return link.");
   }
   for (const key of ["code", "error", "relay_state", "state"]) {
     if (url.searchParams.getAll(key).length > 1) {

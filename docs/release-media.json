@@ -1,5 +1,5 @@
 {
-  "version": "3.6.5",
+  "version": "3.6.6",
   "capturedWith": "Obsidian 1.13.7 native app screenshots; 16:9 padding, no UI reconstruction",
   "capturedAt": "2026-09-08",
   "publicSafeSample": true,
@@ -29,5 +29,6 @@
     "Recognized date in month view",
     "Selected-day panel with source note link"
   ],
-  "capturedVersion": "3.6.0"
+  "capturedVersion": "3.6.0",
+  "reuseReason": "Retain public-safe month and agenda examples from the captured version. This release also adds legacy settings compatibility; these earlier captures do not demonstrate that repair or the new name."
 }

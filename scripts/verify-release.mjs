@@ -41,12 +41,12 @@ const { stdout: trackedBundle } = await run("git", ["ls-files", "main.js"]);
 if (trackedBundle.trim()) errors.push("main.js must be a release asset, not a tracked source file");
 
 if (manifest.id !== "link-calendar") errors.push("manifest id must be link-calendar");
-if (manifest.name !== "Link Calendar Navigator") {
-  errors.push("manifest name must be Link Calendar Navigator");
+if (manifest.name !== "Manta Calendar") {
+  errors.push("manifest name must be Manta Calendar");
 }
 if (packageJson.name !== "link-calendar") errors.push("package name must be link-calendar");
-if (!packageJson.repository?.url?.endsWith("woonyong-choi/obsidian-link-calendar-navigator.git")) {
-  errors.push("package repository must be woonyong-choi/obsidian-link-calendar-navigator");
+if (!packageJson.repository?.url?.endsWith("woonyong-choi/manta-calendar.git")) {
+  errors.push("package repository must be woonyong-choi/manta-calendar");
 }
 if (!/^\d+\.\d+\.\d+$/.test(manifest.version)) errors.push("manifest version must use exact x.y.z format");
 if (manifest.version !== packageJson.version) errors.push("manifest/package versions differ");

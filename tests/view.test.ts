@@ -99,7 +99,7 @@ async function settle(): Promise<void> {
   await new Promise((resolve) => window.setTimeout(resolve));
 }
 
-describe("Link Calendar Navigator view", () => {
+describe("Manta Calendar view", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(FIXED_NOW);

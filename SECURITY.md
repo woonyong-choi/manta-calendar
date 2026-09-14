@@ -6,7 +6,7 @@ Security fixes target the latest published release.
 
 ## Local data boundary
 
-Link Calendar Navigator runs locally inside Obsidian by default. Its automatic read-only index scans active Markdown while excluding hidden and archive/reference paths. Optional configured sources remain read-only by default; local writes require an explicit per-source setting and use Obsidian's Vault API. The plugin has no telemetry, remote AI, or persistent event database.
+Manta Calendar runs locally inside Obsidian by default. Its automatic read-only index scans active Markdown while excluding hidden and archive/reference paths. Optional configured sources remain read-only by default; local writes require an explicit per-source setting and use Obsidian's Vault API. The plugin has no telemetry, remote AI, or persistent event database.
 
 ## Optional Google Calendar boundary
 
@@ -24,4 +24,4 @@ See [PRIVACY.md](PRIVACY.md) for the user-facing Google data disclosure and [doc
 
 ## Reporting
 
-Do not include private Vault content in a public issue. Report reproducible non-sensitive bugs through [GitHub Issues](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/issues/new/choose). For a vulnerability that cannot be described safely in public, use GitHub's private vulnerability reporting for this repository.
+Do not include private Vault content in a public issue. Report reproducible non-sensitive bugs through [GitHub Issues](https://github.com/woonyong-choi/manta-calendar/issues/new/choose). For a vulnerability that cannot be described safely in public, use GitHub's private vulnerability reporting for this repository.

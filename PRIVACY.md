@@ -4,7 +4,7 @@ Last updated: 2026-09-09
 
 Public web copy: [link-calendar-oauth.woonyong.com/privacy](https://link-calendar-oauth.woonyong.com/privacy)
 
-Link Calendar Navigator is an open-source Obsidian plugin. Its calendar index runs locally by default. Google Calendar integration is optional and disabled until a user explicitly enables and connects it.
+Manta Calendar is an open-source Obsidian plugin. Its calendar index runs locally by default. Google Calendar integration is optional and disabled until a user explicitly enables and connects it.
 
 ## Google user data accessed
 
@@ -38,4 +38,4 @@ OAuth uses Authorization Code with PKCE, signed short-lived state, an exact redi
 
 ## Contact
 
-For privacy questions, open a non-sensitive [GitHub Discussion](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/discussions). Do not include private Vault content or credentials. Security-sensitive reports should use GitHub private vulnerability reporting.
+For privacy questions, open a non-sensitive [GitHub Discussion](https://github.com/woonyong-choi/manta-calendar/discussions). Do not include private Vault content or credentials. Security-sensitive reports should use GitHub private vulnerability reporting.

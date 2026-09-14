@@ -7,7 +7,7 @@ body:
     id: versions
     attributes:
       label: Versions
-      description: Link Calendar Navigator, Obsidian, operating system, and theme versions.
+      description: Manta Calendar, Obsidian, operating system, and theme versions.
     validations:
       required: true
   - type: textarea

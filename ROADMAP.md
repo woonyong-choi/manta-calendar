@@ -1,6 +1,6 @@
 # Roadmap
 
-Link Calendar Navigator remains a focused navigator over dated Markdown. The original note is canonical; the local calendar index has no second database, telemetry, or remote AI. Google Calendar is optional and off by default. An explicitly selected writable folder can receive changes from the dedicated Google calendar; automatic body-date indexing stays read-only.
+Manta Calendar remains a focused navigator over dated Markdown. The original note is canonical; the local calendar index has no second database, telemetry, or remote AI. Google Calendar is optional and off by default. An explicitly selected writable folder can receive changes from the dedicated Google calendar; automatic body-date indexing stays read-only.
 
 ## Available
 
@@ -30,4 +30,4 @@ Link Calendar Navigator remains a focused navigator over dated Markdown. The ori
 - Unrequested note rewriting, remote AI, telemetry, or a second event database.
 - Propagating deletions or overwriting simultaneous edits during Google sync.
 
-Use [Issues](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/issues/new/choose) for reproducible bugs and use cases. Broader questions belong in [Discussions](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/discussions).
+Use [Issues](https://github.com/woonyong-choi/manta-calendar/issues/new/choose) for reproducible bugs and use cases. Broader questions belong in [Discussions](https://github.com/woonyong-choi/manta-calendar/discussions).

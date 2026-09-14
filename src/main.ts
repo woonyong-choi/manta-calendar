@@ -508,7 +508,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
     return this.googleClient().ensureAppCalendar(
       this.settings.googleCalendar.calendar,
-      "Link Calendar",
+      "Manta Calendar",
       timeZone,
       replaceUnavailable,
     );
@@ -717,7 +717,7 @@ export default class LinkCalendarPlugin extends Plugin implements SettingsHost {
     const config = parseBlock(source);
     element.empty();
     const root = element.createDiv({ cls: "link-calendar-embed" });
-    root.createEl("strong", { text: config.title || "Link Calendar Navigator" });
+    root.createEl("strong", { text: config.title || "Manta Calendar" });
     if (config.invalid) {
       root.createDiv({
         cls: "link-calendar-embed__error",

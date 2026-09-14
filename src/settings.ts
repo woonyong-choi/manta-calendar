@@ -4,6 +4,7 @@ import {
   Notice,
   type Plugin,
   PluginSettingTab,
+  SettingGroup,
   type SettingDefinitionItem,
   type SettingDefinitionPage,
   type SettingGroupItem,
@@ -39,6 +40,64 @@ export interface SettingsHost {
 export class LinkCalendarSettingTab extends PluginSettingTab {
   constructor(app: App, private readonly host: SettingsHost & Plugin) {
     super(app, host);
+  }
+
+  override update(): void {
+    // Obsidian 1.12 has no declarative settings refresh API.
+    if (typeof super.update === "function") super.update();
+    else if (this.containerEl.isConnected) this.renderLegacy();
+  }
+
+  override display(): void {
+    this.renderLegacy();
+  }
+
+  private renderLegacy(): void {
+    this.containerEl.empty();
+    this.renderLegacyDefinitions(this.containerEl, this.getSettingDefinitions());
+  }
+
+  private renderLegacyDefinitions(container: HTMLElement, definitions: SettingDefinitionItem[]): void {
+    for (const definition of definitions) {
+      const group = new SettingGroup(container);
+      if (!("name" in definition)) {
+        if (definition.heading) group.setHeading(definition.heading);
+        definition.items?.forEach((item, index) => this.renderLegacySetting(group, item, index));
+      } else {
+        this.renderLegacySetting(group, definition, 0);
+      }
+    }
+  }
+
+  private renderLegacySetting(group: SettingGroup, definition: SettingGroupItem, index: number): void {
+    if ("type" in definition) {
+      const page = group.listEl.createEl("details", { cls: "link-calendar-setting-source" });
+      page.createEl("summary", { text: definition.name });
+      if (definition.desc) page.createEl("p", { text: definition.desc });
+      this.renderLegacyDefinitions(page, definition.items ?? []);
+      return;
+    }
+    group.addSetting((setting) => {
+      setting.setName(definition.name);
+      if (definition.desc) setting.setDesc(definition.desc);
+      if (definition.render) definition.render(setting, group);
+      else if (definition.action) {
+        const action = definition.action;
+        setting.addButton((button) => button.setButtonText(definition.name)
+          .onClick(() => action(setting.settingEl, index)));
+      } else if (definition.control) {
+        const control = definition.control;
+        if (control.type === "toggle") {
+          setting.addToggle((toggle) => toggle.setValue(Boolean(this.getControlValue(control.key)))
+            .onChange((value) => this.setControlValue(control.key, value)));
+        } else if (control.type === "dropdown") {
+          const value = this.getControlValue(control.key);
+          setting.addDropdown((dropdown) => dropdown.addOptions(control.options)
+            .setValue(typeof value === "string" ? value : "")
+            .onChange((value) => this.setControlValue(control.key, value)));
+        }
+      }
+    });
   }
 
   override getSettingDefinitions(): SettingDefinitionItem[] {

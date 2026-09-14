@@ -247,14 +247,14 @@ function oauthCompletion(returnUri, locale) {
       action: "Obsidian 열기",
       fallback: "Obsidian이 자동으로 열리지 않으면 아래 버튼을 누르세요.",
       heading: "Google Calendar 연결을 계속하세요",
-      lead: "Google 승인이 완료되었습니다. Link Calendar Navigator로 돌아가 연결을 마칩니다.",
+      lead: "Google 승인이 완료되었습니다. Manta Calendar로 돌아가 연결을 마칩니다.",
       opening: "Obsidian을 여는 중입니다…",
     }
     : {
       action: "Open Obsidian",
       fallback: "If Obsidian did not open automatically, use the button below.",
       heading: "Continue your Google Calendar connection",
-      lead: "Google authorization is complete. Return to Link Calendar Navigator to finish connecting.",
+      lead: "Google authorization is complete. Return to Manta Calendar to finish connecting.",
       opening: "Opening Obsidian…",
     };
   const nonce = crypto.randomUUID();
@@ -282,7 +282,7 @@ function oauthCompletion(returnUri, locale) {
 </head>
 <body>
   <main>
-    <p class="eyebrow">Link Calendar Navigator</p>
+    <p class="eyebrow">Manta Calendar</p>
     <h1>${copy.heading}</h1>
     <p class="lead">${copy.lead}</p>
     <a class="action" href="${escapeHtml(returnUri)}">${copy.action}</a>
@@ -318,30 +318,30 @@ function escapeHtml(value) {
 }
 
 function homePage() {
-  return page("Link Calendar Navigator", `
+  return page("Manta Calendar", `
     <p class="eyebrow">Obsidian Community Plugin</p>
-    <h1>Link Calendar Navigator</h1>
+    <h1>Manta Calendar</h1>
     <p class="lead">See the dates you already wrote. Send only the folder sources you choose to a dedicated Google calendar.</p>
     <section>
       <h2>Private and local by default</h2>
-      <p>Google Calendar integration is optional and disabled by default. Link Calendar requests only the <code>calendar.app.created</code> permission and cannot read your primary calendar or unrelated calendars.</p>
+      <p>Google Calendar integration is optional and disabled by default. Manta Calendar requests only the <code>calendar.app.created</code> permission and cannot read your primary calendar or unrelated calendars.</p>
     </section>
     <section>
       <h2>What the connection does</h2>
-      <p>An explicit sync creates or updates events from selected Obsidian folder sources in a secondary calendar named <strong>Link Calendar</strong>. Markdown remains the source of truth.</p>
+      <p>An explicit sync creates or updates events from selected Obsidian folder sources in a dedicated secondary calendar. New calendars are named <strong>Manta Calendar</strong>; existing calendars keep their names. Markdown remains the source of truth.</p>
     </section>
     <nav aria-label="Project links">
-      <a href="https://github.com/woonyong-choi/obsidian-link-calendar-navigator">Source and documentation</a>
+      <a href="https://github.com/woonyong-choi/manta-calendar">Source and documentation</a>
       <a href="/privacy">Privacy policy</a>
     </nav>
   `);
 }
 
 function privacyPage() {
-  return page("Privacy policy · Link Calendar Navigator", `
+  return page("Privacy policy · Manta Calendar", `
     <p class="eyebrow">Last updated September 4, 2026</p>
     <h1>Privacy policy</h1>
-    <p class="lead">Link Calendar Navigator is local-first. Google Calendar access is optional, narrow, and controlled by the user.</p>
+    <p class="lead">Manta Calendar is local-first. Google Calendar access is optional, narrow, and controlled by the user.</p>
     <section>
       <h2>Google data accessed</h2>
       <p>The plugin requests only <code>calendar.app.created</code>. This permits access to secondary calendars created by this application, not your primary calendar or unrelated calendars.</p>
@@ -356,11 +356,11 @@ function privacyPage() {
     </section>
     <section>
       <h2>Contact</h2>
-      <p>For privacy questions, open a non-sensitive <a href="https://github.com/woonyong-choi/obsidian-link-calendar-navigator/discussions">GitHub Discussion</a>. Use <a href="https://github.com/woonyong-choi/obsidian-link-calendar-navigator/security">private vulnerability reporting</a> for security-sensitive reports.</p>
+      <p>For privacy questions, open a non-sensitive <a href="https://github.com/woonyong-choi/manta-calendar/discussions">GitHub Discussion</a>. Use <a href="https://github.com/woonyong-choi/manta-calendar/security">private vulnerability reporting</a> for security-sensitive reports.</p>
     </section>
     <nav aria-label="Project links">
-      <a href="/">Link Calendar home</a>
-      <a href="https://github.com/woonyong-choi/obsidian-link-calendar-navigator/blob/main/PRIVACY.md">Full privacy policy</a>
+      <a href="/">Manta Calendar home</a>
+      <a href="https://github.com/woonyong-choi/manta-calendar/blob/main/PRIVACY.md">Full privacy policy</a>
     </nav>
   `);
 }
@@ -372,7 +372,7 @@ function page(title, content) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${title}</title>
-  <meta name="description" content="Link Calendar Navigator privacy and Google Calendar connection information.">
+  <meta name="description" content="Manta Calendar privacy and Google Calendar connection information.">
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #111318; color: #eef0f4; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; }

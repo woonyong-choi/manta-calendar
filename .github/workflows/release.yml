@@ -60,13 +60,11 @@ jobs:
           REQUESTED_VERSION: ${{ inputs.version }}
         run: |
           if gh release view "$REQUESTED_VERSION" >/dev/null 2>&1; then
-            gh release upload "$REQUESTED_VERSION" \
-              main.js manifest.json styles.css \
-              --clobber
-          else
-            gh release create "$REQUESTED_VERSION" \
-              --draft \
-              --generate-notes \
-              --target "$GITHUB_SHA" \
-              main.js manifest.json styles.css
+            echo "Release already exists; preserve its assets and download history." >&2
+            exit 1
           fi
+          gh release create "$REQUESTED_VERSION" \
+            --draft \
+            --generate-notes \
+            --target "$GITHUB_SHA" \
+            main.js manifest.json styles.css

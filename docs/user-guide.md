@@ -1,17 +1,17 @@
-# Link Calendar Navigator user guide
+# Manta Calendar user guide
 
 [Back to the overview](../README.md)
 
 ## First timeline: one note, one date
 
-1. Open **Settings → Community plugins → Browse**, search for **Link Calendar Navigator**, then **Install** and **Enable**.
+1. Open **Settings → Community plugins → Browse**, search for **Manta Calendar**, then **Install** and **Enable**.
 2. Create a normal note named `Project check-in`. Paste this line into the note body, outside a code block:
 
 ```markdown
 - 2026-09-10 scheduled · Project check-in
 ```
 
-3. Open the command palette and run **Open Link Calendar Navigator**, or select its calendar ribbon icon.
+3. Open the command palette and run **Open Manta Calendar**, or select its calendar ribbon icon.
 4. Navigate to **September 2026** and select **September 10**. You should see **Project check-in** in the month and selected-day agenda.
 5. Select the event title to return to `Project check-in.md`.
 
@@ -107,7 +107,7 @@ The same period can be repeated across a project plan, meeting note, and progres
 [[Community workshop]] · 2026-08-02 → 2026-08-27
 ```
 
-Link Calendar Navigator uses one stable identity:
+Manta Calendar uses one stable identity:
 
 ```text
 canonical target + start date + end date + temporal kind
@@ -130,7 +130,7 @@ Aliases and relative wikilinks resolve through Obsidian's metadata cache. Hidden
 2. **Choose a day.** The agenda lists every item overlapping that date.
 3. **Open the evidence.** Select the title for the source note, or a provenance link for a mentioning note.
 
-![Link Calendar Navigator daily agenda](media/link-calendar-agenda.png)
+![Manta Calendar daily agenda](media/link-calendar-agenda.png)
 
 Month navigation keeps the selected day and agenda synchronized. Multi-day periods remain visible on every overlapping day, while each cell stays bounded to three one-line titles plus a readable overflow row. Long titles end with an ellipsis; the full title remains available to assistive technology and as a tooltip.
 
@@ -142,7 +142,7 @@ Month navigation keeps the selected day and agenda synchronized. Multi-day perio
 - Use arrow keys to move the selected day; `Enter` or `Space` opens its agenda.
 - Press `Escape` to close the agenda and restore focus.
 - Run **Reveal active note in calendar** to locate the current dated note.
-- Select **Today** or run **Show today in Link Calendar Navigator** to return to the current date.
+- Select **Today** or run **Show today in Manta Calendar** to return to the current date.
 - Use search, source filters, and focus mode without changing Markdown.
 
 The UI uses Obsidian semantic theme variables, supports narrow side panes and mobile layouts, and respects reduced motion and forced colors.
@@ -216,5 +216,5 @@ Current release: **3.6.4**, for Obsidian **1.13.0+** on desktop and mobile.
 
 Recent captures use desktop Obsidian 1.13.7. They do not represent a fresh mobile-device test.
 
-For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-choi/obsidian-link-calendar-navigator/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
+For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-choi/manta-calendar/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
 

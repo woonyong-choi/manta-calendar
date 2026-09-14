@@ -1,5 +1,5 @@
 /*
- * Link Calendar Navigator aliases Obsidian's public semantic CSS variables so the
+ * Manta Calendar aliases Obsidian's public semantic CSS variables so the
  * active host theme remains the single global token source. Component files
  * consume only these --cc-* aliases. Calendar geometry stays plugin-local.
  */
