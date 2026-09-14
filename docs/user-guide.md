@@ -31,13 +31,15 @@ No account, folder configuration, or date property is needed for this example. Y
 
 ## Optional Google Calendar sync
 
-The local calendar works offline. Google is optional and off by default. Connecting creates a separate calendar named **Link Calendar** in your Google account; you do not need to create a Google developer project.
+The local calendar works offline. Google is optional and off by default. Connecting on macOS or Windows creates a separate calendar named **Manta Calendar** in your Google account; you do not need to create a Google developer project.
 
 | What you want | What to choose |
 | --- | --- |
 | Only find dates already in your notes | Leave Google disabled; use the first example above. |
 | Send calendar notes to Google for its reminders | Select the note-folder sources to send, connect Google, then select **Sync now**. |
 | Create or edit events in either app | Also choose a writable folder source under **Two-way sync destination**, then select **Sync now**. |
+
+Existing connections may retain the earlier **Link Calendar** name. They keep their saved calendar and event mappings.
 
 A **source** means a folder of Obsidian notes with mapped date properties. It is not your Google account or primary calendar. Automatic dates found in note bodies are not sent to Google by selecting two-way sync.
 
@@ -46,8 +48,8 @@ A **source** means a folder of Obsidian notes with mapped date properties. It is
 1. In **Calendar settings**, use **Add source** for the note folder that will hold your calendar notes. Enable **Writable** and configure distinct title, start/end date, time, and all-day properties. The source preview shows what matches before you use it.
 2. Enable **Google Calendar**, select **Connect Google Calendar**, and authorize your account in the browser. Return to the same Obsidian Vault.
 3. Select that folder source for Google sync and choose it as **Two-way sync destination**.
-4. In Google Calendar, create a simple, non-recurring event in **Link Calendar**. In Obsidian, select **Sync now**. A new note should appear in the chosen folder.
-5. Change a mapped title or date in that note and select **Sync now** again. The corresponding event in **Link Calendar** should update.
+4. In Google Calendar, create a simple, non-recurring event in **Manta Calendar**. In Obsidian, select **Sync now**. A new note should appear in the chosen folder.
+5. Change a mapped title or date in that note and select **Sync now** again. The corresponding event in **Manta Calendar** should update.
 
 Sync is manual and Obsidian must be open. If both sides changed, sync asks you to review the conflict instead of overwriting either one. Deleting on one side does not delete the other. Recurring events are not imported. Primary and unrelated Google calendars stay outside this integration.
 
@@ -56,7 +58,7 @@ See the [complete Google setup, supported fields, and recovery guide](google-cal
 <details>
 <summary>Sync boundaries, permissions, and less common cases</summary>
 
-Google Calendar integration is off by default. When you enable it, one **Connect Google Calendar** action creates a dedicated **Link Calendar** in your account. You do not create an OAuth client or paste credentials.
+Google Calendar integration is off by default. When you enable it, one **Connect Google Calendar** action creates a dedicated **Manta Calendar** in your account. You do not create an OAuth client or paste credentials.
 
 1. Add or choose the folder sources whose mapped events may leave Obsidian.
 2. Enable **Google Calendar** and connect your account in the browser.
@@ -97,7 +99,7 @@ When a folder already uses date properties, add it once in plugin settings and m
 
 ISO dates such as `2026-09-02` and ISO date-times are supported. Invalid or reversed ranges are ignored rather than rewritten.
 
-Time values are treated as wall-clock values: `2026-09-02T14:00:00+09:00` remains `14:00` when displayed in 24-hour mode. Link Calendar does not silently shift an authored time to the operating-system timezone. Choose **12-hour** or **24-hour** under **Calendar settings → Time format**; this changes presentation only.
+Time values are treated as wall-clock values: `2026-09-02T14:00:00+09:00` remains `14:00` when displayed in 24-hour mode. Manta Calendar does not silently shift an authored time to the operating-system timezone. Choose **12-hour** or **24-hour** under **Calendar settings → Time format**; this changes presentation only.
 
 ## Deduplication and provenance
 
