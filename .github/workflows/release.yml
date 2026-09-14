@@ -33,10 +33,13 @@ jobs:
           conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&status=completed&per_page=1" --jq ' .workflow_runs[0].conclusion')"
           test "$conclusion" = success
       - run: npm ci
-      - run: npm run build
-      - run: LINK_CALENDAR_REQUIRE_GOOGLE_RELAY=1 node scripts/verify-google-build.mjs
+      - name: Build and verify registered desktop app
+        env:
+          MANTA_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ secrets.MANTA_GOOGLE_DESKTOP_CLIENT_SECRET }}
+        run: |
+          npm run build
+          node scripts/verify-google-build.mjs --require-configured
       - run: node scripts/verify-release.mjs
-      - run: npm run verify:relay
       - name: Require main branch
         if: github.ref != 'refs/heads/main'
         run: |

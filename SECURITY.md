@@ -12,13 +12,18 @@ Manta Calendar runs locally inside Obsidian by default. Its automatic read-only 
 
 Google Calendar is disabled by default. Enabling it does not write remotely until the user connects an account, maps at least one configured folder source, and runs sync.
 
-- OAuth uses Authorization Code with PKCE and a fixed Obsidian callback.
-- The relay requests only `calendar.app.created`, so it can create and access the dedicated calendar and its events, not primary or unrelated calendars.
+- OAuth uses a public Google Desktop app client with Authorization Code and PKCE (S256). The system browser returns only to `127.0.0.1` on an ephemeral port, at `/oauth/callback`.
+- The listener validates the method, exact host and path, random state, and duplicate callback parameters. It accepts one response and closes after completion, cancellation, plugin unload, or ten minutes. It never listens on a LAN interface.
+- State, the PKCE verifier, and the authorization code remain in memory. The callback page has no external resources, no caching, and no callback parameters in its HTML.
+- The plugin requests only `calendar.app.created`, so it can create and access the dedicated calendar and its events, not primary or unrelated calendars.
 - Refresh tokens are stored through Obsidian `SecretStorage`, never `data.json`, URLs, source code, or logs.
-- The relay exchanges, refreshes, and revokes tokens without persistent storage or request-body logging.
-- Event requests go directly from Obsidian to Google Calendar.
+- Token exchange, refresh, and revocation go directly to Google over HTTPS. Google requires the Desktop app's `client_secret` registration value for exchange and refresh; release builds embed it through a build environment variable, never a tracked credentials file. As [Google explains for installed apps](https://developers.google.com/identity/protocols/oauth2#installed), it cannot be kept confidential in a distributed app. It is not a user token or a substitute for user consent and PKCE. No web-client credential, Manta domain, or Cloudflare Worker participates in version 4 authentication.
+- Event requests go directly from Obsidian to Google Calendar. No token or request body is logged.
+- The direct refresh token is bound to its client ID in SecretStorage. Legacy relay credentials are ignored. Late responses cannot restore a disconnected account.
 - Every persisted mapping requires an ETag; updates use the previous ETag and stop on missing or remote-changed values.
 - Missing local events never cause remote deletion.
+
+The desktop-only manifest excludes Obsidian mobile. Builds and releases check the configured Desktop registration, direct Google endpoints, desktop requirement, and absence of relay URLs or unexpected OAuth credentials. Release verification rejects missing registration values. Integration tests exercise real loopback sockets on macOS and Windows; an actual Google sign-in remains a separate release validation.
 
 See [PRIVACY.md](PRIVACY.md) for the user-facing Google data disclosure and [docs/google-calendar.md](docs/google-calendar.md) for the exact synchronization contract.
 

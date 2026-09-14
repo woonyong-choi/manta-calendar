@@ -15,8 +15,7 @@ const publicDocs = await Promise.all(
   ["README.md", "CHANGELOG.md", "CONTRIBUTING.md", "PRIVACY.md", "SECURITY.md", "docs/google-calendar.md"]
     .map((file) => readFile(file, "utf8")),
 );
-const oauthProtocol = await readFile("oauth-worker/src/protocol.mjs", "utf8");
-const oauthWorkerConfig = JSON.parse(await readFile("oauth-worker/wrangler.jsonc", "utf8"));
+const googleAuth = await readFile("src/google-auth.ts", "utf8");
 const styles = await readFile("styles.css", "utf8");
 const media = JSON.parse(await readFile("docs/release-media.json", "utf8"));
 const requiredMedia = [
@@ -41,6 +40,7 @@ const { stdout: trackedBundle } = await run("git", ["ls-files", "main.js"]);
 if (trackedBundle.trim()) errors.push("main.js must be a release asset, not a tracked source file");
 
 if (manifest.id !== "link-calendar") errors.push("manifest id must be link-calendar");
+if (manifest.isDesktopOnly !== true) errors.push("Manta Calendar requires desktop Obsidian for direct Google authorization");
 if (manifest.name !== "Manta Calendar") {
   errors.push("manifest name must be Manta Calendar");
 }
@@ -91,11 +91,8 @@ if (!source.some((content) => content.includes("extractMarkdownTemporal"))) {
 if (!source.some((content) => content.includes("getSettingDefinitions()"))) {
   errors.push("settings must use the declarative settings API");
 }
-if (!source.some((content) => content.includes('registerObsidianProtocolHandler("link-calendar-google"'))) {
-  errors.push("Google OAuth callback must use the fixed link-calendar protocol handler");
-}
-if (!oauthProtocol.includes('"https://www.googleapis.com/auth/calendar.app.created"')) {
-  errors.push("Google OAuth relay must request the app-created calendar scope");
+if (!googleAuth.includes('"https://www.googleapis.com/auth/calendar.app.created"')) {
+  errors.push("Google OAuth must request the app-created calendar scope");
 }
 for (const broadScope of [
   '"https://www.googleapis.com/auth/calendar"',
@@ -103,13 +100,7 @@ for (const broadScope of [
   '"https://www.googleapis.com/auth/calendar.events.owned"',
   '"https://www.googleapis.com/auth/calendar.calendarlist.readonly"',
 ]) {
-  if (oauthProtocol.includes(broadScope)) errors.push(`OAuth relay contains a broader scope: ${broadScope}`);
-}
-if (oauthWorkerConfig.observability?.enabled !== false) {
-  errors.push("OAuth relay observability must remain disabled");
-}
-if (oauthWorkerConfig.vars?.PLUGIN_REDIRECT_URI !== "obsidian://link-calendar-google") {
-  errors.push("OAuth relay must return only to the fixed Obsidian protocol URI");
+  if (googleAuth.includes(broadScope)) errors.push(`Google OAuth contains a broader scope: ${broadScope}`);
 }
 if (!publicDocs[0].includes("[privacy policy](PRIVACY.md)")) {
   errors.push("README must link the Google data privacy policy");

@@ -1,6 +1,6 @@
 {
   "name": "link-calendar",
-  "version": "3.6.6",
+  "version": "4.0.0",
   "description": "Turn Markdown dates into a low-noise Vault timeline, with optional two-way Google Calendar synchronization.",
   "main": "main.js",
   "scripts": {
@@ -11,11 +11,10 @@
     "knip": "knip",
     "lint:obsidian": "eslint src tests",
     "test": "vitest run",
-    "test:oauth": "npm --prefix oauth-worker test",
+    "test:desktop": "vitest run tests/google-desktop.test.ts tests/google-auth.test.ts",
     "test:visual": "node scripts/verify-visual-fixture.mjs",
-    "verify": "npm run check && npm run knip && npm test && npm run test:oauth && npm run test:visual && npm run build && node scripts/verify-google-build.mjs && node scripts/verify-release.mjs",
-    "verify:relay": "node scripts/verify-google-relay.mjs",
-    "verify:release": "LINK_CALENDAR_REQUIRE_GOOGLE_RELAY=1 npm run verify && npm run verify:relay",
+    "verify": "npm run check && npm run knip && npm test && npm run test:visual && npm run build && node scripts/verify-google-build.mjs && node scripts/verify-release.mjs",
+    "verify:release": "npm run verify && node scripts/verify-google-build.mjs --require-configured",
     "test:coverage": "vitest run --coverage"
   },
   "keywords": [

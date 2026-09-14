@@ -3,7 +3,7 @@ import type { App, PluginManifest } from "obsidian";
 import LinkCalendarPlugin from "../src/main";
 import type { GoogleHttpRequest } from "../src/google-calendar";
 
-vi.mock("../src/google-config", () => ({ GOOGLE_OAUTH_RELAY_URL: "https://example.com" }));
+vi.mock("../src/google-config", () => ({ GOOGLE_OAUTH_CLIENT_ID: "1234567890-desktop.apps.googleusercontent.com", GOOGLE_OAUTH_CLIENT_SECRET: "desktop-test-registration" }));
 vi.mock("obsidian", async importOriginal => ({
   ...await importOriginal<object>(),
   Plugin: vi.fn(),
@@ -11,6 +11,38 @@ vi.mock("obsidian", async importOriginal => ({
   FuzzySuggestModal: vi.fn(),
   Modal: vi.fn(),
 }));
+
+it.each([200, 404])("preserves the 3.x calendar and mappings after direct sign-in with calendar status %s", async status => {
+  const plugin = new LinkCalendarPlugin({} as App, {} as PluginManifest);
+  const google = plugin.settings.googleCalendar;
+  google.enabled = true;
+  google.calendar = { id: "old-calendar", name: "Link Calendar", timeZone: "UTC" };
+  google.installationId = "existing-installation";
+  google.sourceProfileIds = ["profile"];
+  google.incomingProfileId = "profile";
+  google.records = [{
+    calendarId: "old-calendar", etag: "existing-etag", eventId: "existing-event", fingerprint: "existing-fingerprint",
+    localKey: "profile\u0000Calendar/existing-note.md",
+  }];
+  const before = structuredClone(google);
+  const requests: GoogleHttpRequest[] = [];
+  const auth = { connect: vi.fn(async () => {}), isConnected: () => true, getAccessToken: async () => "new-direct-token" };
+  Object.assign(plugin, {
+    googleAuth: auth,
+    settingsTab: { update: vi.fn() },
+    googleRequest: async (request: GoogleHttpRequest) => {
+      requests.push(request);
+      return { status, json: { id: "old-calendar", summary: "Link Calendar", timeZone: "UTC" } };
+    },
+  });
+  plugin.saveSettings = vi.fn(async () => {});
+  await plugin.connectGoogle();
+  expect(auth.connect).toHaveBeenCalledOnce();
+  expect(google).toEqual(before);
+  expect(requests).toHaveLength(1);
+  expect(requests[0]?.method ?? "GET").toBe("GET");
+  expect(requests[0]?.url).toBe("https://www.googleapis.com/calendar/v3/calendars/old-calendar");
+});
 
 it.each([200, 500])("preserves mappings and authorization during concurrent recovery with create status %s", async status => {
   const plugin = new LinkCalendarPlugin({} as App, {} as PluginManifest);

@@ -29,8 +29,9 @@ if (/(?:^|\})\s*(?:body|html|:root)\b/mu.test(tokens)) {
   throw new Error("Token CSS contains a global root selector");
 }
 
-if (/(?:^|[^-])#[0-9a-f]{3,8}\b/iu.test(tokens) || /\brgba?\(/u.test(tokens)) {
-  throw new Error("Token CSS must not own literal colors");
+const hostTokensOnly = tokens.replace(/--cc-surface-canvas: #(ffffff|0d1117);/gu, "");
+if (/(?:^|[^-])#[0-9a-f]{3,8}\b/iu.test(hostTokensOnly) || /\brgba?\(/u.test(hostTokensOnly)) {
+  throw new Error("Only the shared Wiki canvas may own a literal color");
 }
 
 const hostTokens = new Set([

@@ -1,7 +1,0 @@
-{
-  "name": "link-calendar-oauth-worker",
-  "private": true,
-  "scripts": {
-    "test": "node --test test/*.test.mjs"
-  }
-}

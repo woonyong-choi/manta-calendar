@@ -1,245 +1,292 @@
-import { describe, expect, it } from "vitest";
-
-import { GoogleAuthError, GoogleAuthManager, parseGoogleReturnLink, type SecretStore } from "../src/google-auth";
+// @vitest-environment node
+import { request as httpRequest } from "node:http";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { GoogleAuthManager, type SecretStore } from "../src/google-auth";
 import type { GoogleHttpRequest, GoogleHttpResponse } from "../src/google-calendar";
 
-const scopes = [
-  "https://www.googleapis.com/auth/calendar.app.created",
-];
+vi.mock("node:timers", () => ({
+  setTimeout: (callback: () => void, delay?: number) => globalThis.setTimeout(callback, delay),
+  clearTimeout: (timer: ReturnType<typeof setTimeout> | undefined) => { globalThis.clearTimeout(timer); },
+}));
 
-class MemorySecrets implements SecretStore {
-  readonly values = new Map<string, string>();
+const clientId = "1234567890-desktop.apps.googleusercontent.com";
+const clientSecret = "desktop-test-registration";
+const scope = "https://www.googleapis.com/auth/calendar.app.created";
+const secretKey = "link-calendar-google-desktop-authorization";
+const validToken = { access_token: "access", refresh_token: "refresh", expires_in: 3600, scope, token_type: "Bearer" };
+const managers: GoogleAuthManager[] = [];
+afterEach(() => { managers.forEach(auth => { auth.cancel(); }); managers.length = 0; vi.useRealTimers(); });
 
-  getSecret(id: string): string | null {
-    return this.values.get(id) || null;
-  }
-
-  setSecret(id: string, secret: string): void {
-    this.values.set(id, secret);
-  }
+class Secrets implements SecretStore {
+  values = new Map<string, string>();
+  getSecret(key: string) { return this.values.get(key) || null; }
+  setSecret(key: string, value: string) { this.values.set(key, value); }
 }
 
-function manager(
-  secrets: MemorySecrets,
-  handler: (request: GoogleHttpRequest) => GoogleHttpResponse | Promise<GoogleHttpResponse>,
-  now = () => 1_000,
-) {
-  return new GoogleAuthManager("https://relay.example", async (request) => handler(request), secrets, now);
+function fixture(handler?: (request: GoogleHttpRequest) => GoogleHttpResponse | Promise<GoogleHttpResponse>) {
+  const secrets = new Secrets();
+  const requests: GoogleHttpRequest[] = [];
+  const auth = new GoogleAuthManager(clientId, clientSecret, async request => {
+    requests.push(request);
+    return handler ? handler(request) : { status: 200, json: validToken };
+  }, secrets);
+  managers.push(auth);
+  return { auth, secrets, requests };
 }
 
-describe("Google OAuth client", () => {
-  it("finishes a pending connection from a pasted return link when the app handoff never fires", async () => {
-    const secrets = new MemorySecrets();
-    let exchanges = 0;
-    const auth = manager(secrets, () => {
-      exchanges++;
-      return { status: 200, json: { accessToken: "access", refreshToken: "refresh", expiresIn: 3600, scopes } };
+async function start(auth: GoogleAuthManager) {
+  let opened!: (url: URL) => void;
+  const browser = new Promise<URL>(resolve => { opened = resolve; });
+  const done = auth.connect("en", url => { opened(new URL(url)); });
+  void done.catch(() => {});
+  const url = await browser;
+  const callback = new URL(url.searchParams.get("redirect_uri") ?? "");
+  callback.searchParams.set("state", url.searchParams.get("state") ?? "");
+  callback.searchParams.set("code", "test-code");
+  return { callback, done };
+}
+
+async function approve(url: string) {
+  const authorization = new URL(url);
+  const callback = new URL(authorization.searchParams.get("redirect_uri") ?? "");
+  callback.searchParams.set("state", authorization.searchParams.get("state") ?? "");
+  callback.searchParams.set("code", "test-code");
+  await fetch(callback);
+}
+
+function rawRequest(url: URL, host: string, path = url.pathname + url.search): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const request = httpRequest({ hostname: url.hostname, port: url.port, path, headers: { Host: host } }, response => {
+      response.resume();
+      response.once("end", () => { resolve(response.statusCode ?? 0); });
     });
-    const request = new URL(await auth.beginAuthorization("en"));
-    const link = new URL("obsidian://link-calendar-google");
-    link.searchParams.set("code", "fresh-code");
-    link.searchParams.set("relay_state", "signed-state");
-    link.searchParams.set("state", request.searchParams.get("client_state") ?? "");
-    expect(auth.connectionPhase()).toBe("waiting");
-    await auth.completeAuthorization(parseGoogleReturnLink(link.toString()));
-    expect(auth.isConnected()).toBe(true);
-    expect(exchanges).toBe(1);
-    await expect(auth.completeAuthorization(parseGoogleReturnLink(link.toString()))).rejects.toThrow("expired");
-    expect(exchanges).toBe(1);
-    expect([...secrets.values.values()].join(" ")).not.toContain("fresh-code");
+    request.once("error", reject);
+    request.end();
   });
+}
 
-  it("rejects unrelated and ambiguous pasted links without making an exchange", () => {
-    for (const link of [
-      "https://example.com/oauth/callback?code=secret",
-      "obsidian://other-action?code=secret",
-      "obsidian://link-calendar-google/other?code=secret",
-      "obsidian://link-calendar-google?state=a&state=b",
-      "obsidian://link-calendar-google?code=a&code=b",
-      "obsidian://link-calendar-google?code=a#fragment",
-    ]) expect(() => parseGoogleReturnLink(link)).toThrow(GoogleAuthError);
-  });
-
-  it("starts PKCE without exposing the verifier and accepts only the matching callback", async () => {
-    const secrets = new MemorySecrets();
-    const requests: GoogleHttpRequest[] = [];
-    const auth = manager(secrets, (request) => {
-      requests.push(request);
-      return {
-        json: {
-          accessToken: "access",
-          expiresIn: 3_600,
-          refreshToken: "refresh",
-          scopes,
-        },
-        status: 200,
-      };
-    });
-    expect(auth.connectionPhase()).toBe("idle");
-    const authorizeUrl = new URL(await auth.beginAuthorization("ko"));
-    expect(auth.connectionPhase()).toBe("waiting");
-    expect(authorizeUrl.origin).toBe("https://relay.example");
-    expect(authorizeUrl.pathname).toBe("/oauth/authorize");
-    expect(authorizeUrl.searchParams.get("locale")).toBe("ko");
-    expect(authorizeUrl.searchParams.has("verifier")).toBe(false);
-    const state = authorizeUrl.searchParams.get("client_state") ?? "";
-
-    await auth.completeAuthorization({
-      code: "authorization-code",
-      relay_state: "signed-relay-state",
-      state,
-    });
-    expect(auth.connectionPhase()).toBe("connected");
-    expect(auth.isConnected()).toBe(true);
-    expect(await auth.getAccessToken()).toBe("access");
-    expect(requests).toHaveLength(1);
-    const tokenRequest: unknown = JSON.parse(requests[0]?.body ?? "{}");
-    expect(tokenRequest).toMatchObject({
-      code: "authorization-code",
-      relayState: "signed-relay-state",
-    });
-    expect(tokenRequest).toHaveProperty("verifier");
-    if (!tokenRequest || typeof tokenRequest !== "object" || !("verifier" in tokenRequest)) {
-      throw new Error("missing verifier");
+describe("desktop OAuth trust boundary", () => {
+  it("rejects foreign hosts, malformed URLs, duplicate parameters and wrong state before contacting Google", async () => {
+    const { auth, requests } = fixture();
+    const { callback, done } = await start(auth);
+    expect(await rawRequest(callback, "attacker.example")).toBe(400);
+    expect(await rawRequest(callback, callback.host, "http://[")).toBe(400);
+    expect((await fetch(callback, { method: "POST" })).status).toBe(405);
+    for (const value of ["wrong", ""]) {
+      const invalid = new URL(callback);
+      invalid.searchParams.set("state", value);
+      expect((await fetch(invalid)).status).toBe(400);
     }
-    expect(tokenRequest.verifier).toMatch(/^[A-Za-z0-9_-]{80,90}$/);
+    for (const key of ["code", "state", "error"]) {
+      const duplicate = new URL(callback);
+      duplicate.searchParams.append(key, "duplicate");
+      expect((await fetch(duplicate)).status).toBe(400);
+    }
+    const wrongPath = new URL(callback); wrongPath.pathname = "/other";
+    expect((await fetch(wrongPath)).status).toBe(404);
+    expect(requests).toHaveLength(0);
+    expect(auth.connectionPhase()).toBe("waiting");
+    await fetch(callback);
+    await done;
+    expect(requests).toHaveLength(1);
+    await expect(fetch(callback)).rejects.toThrow();
   });
 
-  it("rejects callback state mismatch and an expired pending request", async () => {
-    const secrets = new MemorySecrets();
-    const auth = manager(secrets, () => ({ json: {}, status: 500 }));
-    await auth.beginAuthorization("en");
-    await expect(auth.completeAuthorization({
-      code: "code",
-      relay_state: "relay",
-      state: "wrong-state",
-    })).rejects.toBeInstanceOf(GoogleAuthError);
-
-    let now = 1_000;
-    const expired = manager(secrets, () => ({ json: {}, status: 500 }), () => now);
-    await expired.beginAuthorization("en");
-    now += 11 * 60 * 1_000;
-    expect(expired.connectionPhase()).toBe("expired");
-    await expect(expired.completeAuthorization({
-      code: "code",
-      relay_state: "relay",
-      state: "state",
-    })).rejects.toThrow("expired");
-    expect(expired.connectionPhase()).toBe("failed");
+  it("closes the pending port when the user cancels or the plugin unloads", async () => {
+    const { auth, requests } = fixture();
+    const { callback, done } = await start(auth);
+    const rejected = expect(done).rejects.toThrow("cancelled");
+    auth.cancel();
+    await rejected;
+    await expect(fetch(callback)).rejects.toThrow();
+    expect(requests).toHaveLength(0);
+    expect(auth.connectionPhase()).toBe("idle");
   });
 
-  it("refreshes access without putting the refresh token in a URL", async () => {
-    const secrets = new MemorySecrets();
-    secrets.setSecret("link-calendar-google-refresh-token", "refresh-secret");
-    const requests: GoogleHttpRequest[] = [];
-    const auth = manager(secrets, (request) => {
-      requests.push(request);
-      return {
-        json: { accessToken: "renewed", expiresIn: 3_600, refreshToken: "", scopes },
-        status: 200,
-      };
-    });
-    expect(await auth.getAccessToken()).toBe("renewed");
-    expect(requests[0]?.url).toBe("https://relay.example/oauth/refresh");
-    expect(requests[0]?.url).not.toContain("refresh-secret");
-    expect(JSON.parse(requests[0]?.body ?? "{}")).toEqual({ refreshToken: "refresh-secret" });
+  it("expires the callback after ten minutes and closes its port", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const { auth, requests } = fixture();
+    const { callback, done } = await start(auth);
+    const rejected = expect(done).rejects.toThrow("expired");
+    await vi.advanceTimersByTimeAsync(600000);
+    await rejected;
+    vi.useRealTimers();
+    await expect(fetch(callback)).rejects.toThrow();
+    expect(auth.connectionPhase()).toBe("expired");
+    expect(requests).toHaveLength(0);
   });
 
-  it("does not clear the local token when remote revocation fails", async () => {
-    const secrets = new MemorySecrets();
-    secrets.setSecret("link-calendar-google-refresh-token", "refresh-secret");
-    const auth = manager(secrets, () => ({ json: { error: "failed" }, status: 503 }));
-    await expect(auth.disconnect()).rejects.toThrow("could not be revoked");
+  it("closes the callback when opening the browser fails and allows a fresh connection", async () => {
+    const { auth, requests } = fixture();
+    let callback = "";
+    await expect(auth.connect("en", url => {
+      callback = new URL(url).searchParams.get("redirect_uri") ?? "";
+      throw new Error("Could not open the browser");
+    })).rejects.toThrow("Could not open the browser");
+    await expect(fetch(callback)).rejects.toThrow();
+    expect(requests).toHaveLength(0);
+    await auth.connect("en", approve);
     expect(auth.isConnected()).toBe(true);
   });
 
-  it.each(["refresh", "authorization"])("does not restore a disconnected account from a late %s response", async (operation) => {
-    const secrets = new MemorySecrets();
-    secrets.setSecret("link-calendar-google-refresh-token", "existing-refresh");
-    let deliver!: (response: GoogleHttpResponse) => void;
-    const tokenResponse = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
-    const auth = manager(secrets, request => request.url.endsWith("/revoke")
-      ? { status: 200, json: {} } : tokenResponse);
-    const url = new URL(await auth.beginAuthorization("en"));
-    const pending = operation === "refresh" ? auth.getAccessToken() : auth.completeAuthorization({
-      code: "code", relay_state: "relay", state: url.searchParams.get("client_state") ?? "",
-    });
-    const rejected = expect(pending).rejects.toThrow("connection changed");
-    await auth.disconnect();
-    deliver({ status: 200, json: { accessToken: "late-access", refreshToken: "late-refresh", expiresIn: 3600, scopes } });
+  it("replaces an unfinished connection without accepting its old callback", async () => {
+    const { auth, requests } = fixture();
+    const first = await start(auth);
+    const rejected = expect(first.done).rejects.toThrow("cancelled");
+    const second = await start(auth);
+    await rejected;
+    await expect(fetch(first.callback)).rejects.toThrow();
+    await fetch(second.callback);
+    await second.done;
+    expect(requests).toHaveLength(1);
+    expect(auth.isConnected()).toBe(true);
+  });
+
+  it("handles denied consent without sending a token exchange", async () => {
+    const { auth, requests } = fixture();
+    const { callback, done } = await start(auth);
+    callback.searchParams.delete("code"); callback.searchParams.set("error", "access_denied");
+    const rejected = expect(done).rejects.toThrow("cancelled");
+    expect((await fetch(callback)).status).toBe(200);
     await rejected;
     expect(auth.isConnected()).toBe(false);
-    expect(auth.connectionPhase()).toBe("idle");
-    await expect(auth.getAccessToken()).rejects.toThrow("not connected");
+    expect(requests).toHaveLength(0);
   });
 
-  it("revokes remotely before clearing local secrets", async () => {
-    const secrets = new MemorySecrets();
-    secrets.setSecret("link-calendar-google-refresh-token", "refresh-secret");
-    secrets.setSecret("link-calendar-google-pending-oauth", "pending");
-    const requests: GoogleHttpRequest[] = [];
-    const auth = manager(secrets, (request) => {
-      requests.push(request);
-      return { json: { revoked: true }, status: 200 };
-    });
-
-    await auth.disconnect();
-
-    expect(requests[0]?.url).toBe("https://relay.example/oauth/revoke");
-    expect(requests[0]?.url).not.toContain("refresh-secret");
+  it("preserves legacy relay tokens without using them as desktop credentials", async () => {
+    const { auth, secrets, requests } = fixture();
+    secrets.setSecret("link-calendar-google-refresh-token", "legacy-refresh");
+    secrets.setSecret(secretKey, JSON.stringify({ clientId: "different-client", refreshToken: "foreign-refresh" }));
     expect(auth.isConnected()).toBe(false);
-    expect(secrets.getSecret("link-calendar-google-pending-oauth")).toBeNull();
+    await expect(auth.getAccessToken()).rejects.toThrow("not connected");
+    expect(secrets.getSecret("link-calendar-google-refresh-token")).toBe("legacy-refresh");
+    expect(requests).toHaveLength(0);
   });
 
-  it("accepts the single least-privilege app-created scope", async () => {
-    const secrets = new MemorySecrets();
-    const auth = manager(secrets, () => ({
-      json: {
-        accessToken: "access",
-        expiresIn: 3_600,
-        refreshToken: "must-not-be-stored",
-        scopes: [scopes[0]],
-      },
-      status: 200,
-    }));
-    const authorizeUrl = new URL(await auth.beginAuthorization("en"));
+  it.each([
+    { ...validToken, scope: "email" },
+    { ...validToken, expires_in: -1 },
+    { ...validToken, expires_in: Number.POSITIVE_INFINITY },
+    { ...validToken, token_type: "unexpected" },
+    { ...validToken, refresh_token: "" },
+    { ...validToken, access_token: "" },
+  ])("does not store a token when Google returns invalid credentials or insufficient scope", async token => {
+    const { auth, secrets } = fixture(() => ({ status: 200, json: token }));
+    await expect(auth.connect("en", approve)).rejects.toThrow();
+    expect(auth.isConnected()).toBe(false);
+    expect(secrets.getSecret(secretKey)).toBeNull();
+  });
 
-    await expect(auth.completeAuthorization({
-      code: "authorization-code",
-      relay_state: "signed-relay-state",
-      state: authorizeUrl.searchParams.get("client_state") ?? "",
-    })).resolves.toBeUndefined();
+  it("revokes directly at Google and keeps the credential if revocation fails", async () => {
+    let status = 503;
+    const { auth, secrets, requests } = fixture(() => ({ status, json: null }));
+    secrets.setSecret(secretKey, JSON.stringify({ clientId, refreshToken: "private-refresh" }));
+    await expect(auth.disconnect()).rejects.toThrow("could not be revoked");
+    expect(auth.isConnected()).toBe(true);
+    expect(requests[0]?.url).toBe("https://oauth2.googleapis.com/revoke");
+    expect(new URLSearchParams(requests[0]?.body).get("token")).toBe("private-refresh");
+    status = 200;
+    await auth.disconnect();
+    expect(auth.isConnected()).toBe(false);
+  });
+
+  it.each(["refresh", "authorization"])("does not restore a disconnected account after a late %s response", async operation => {
+    let deliver!: (response: GoogleHttpResponse) => void;
+    let reached!: () => void;
+    const token = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const requested = new Promise<void>(resolve => { reached = resolve; });
+    const { auth, secrets } = fixture(request => {
+      if (request.url.endsWith("/revoke")) return { status: 200, json: null };
+      reached(); return token;
+    });
+    secrets.setSecret(secretKey, JSON.stringify({ clientId, refreshToken: "existing" }));
+    const connection = operation === "authorization" ? await start(auth) : undefined;
+    const browser = connection ? fetch(connection.callback).catch(() => undefined) : undefined;
+    const pending = connection ? connection.done : auth.getAccessToken();
+    const rejected = expect(pending).rejects.toThrow(connection ? "cancelled" : "connection changed");
+    await requested;
+    await auth.disconnect();
+    deliver({ status: 200, json: validToken });
+    await rejected;
+    await browser;
+    expect(auth.isConnected()).toBe(false);
+    expect(auth.connectionPhase()).toBe("idle");
+  });
+
+  it("does not expose provider error text or send requests when no client is configured", async () => {
+    const { auth } = fixture(() => ({ status: 400, json: { error: "invalid_grant", error_description: "private-token" } }));
+    const { callback, done } = await start(auth);
+    const rejected = expect(done).rejects.toThrow("expired or was revoked");
+    const response = await fetch(callback);
+    expect(response.status).toBe(502);
+    const page = await response.text();
+    expect(page).toContain("Google connection could not be completed.");
+    expect(page).not.toContain("private-token");
+    expect(page).not.toContain("Google Calendar is connected.");
+    await rejected;
+    const http = vi.fn();
+    const unavailable = new GoogleAuthManager("", clientSecret, http, new Secrets());
+    await expect(unavailable.connect("en", () => {})).rejects.toThrow("not configured");
+    const missingRegistration = new GoogleAuthManager(clientId, "", http, new Secrets());
+    await expect(missingRegistration.connect("en", () => {})).rejects.toThrow("not configured");
+    expect(http).not.toHaveBeenCalled();
+  });
+
+  it("waits for token storage before showing browser success", async () => {
+    let deliver!: (response: GoogleHttpResponse) => void;
+    let reached!: () => void;
+    const token = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const requested = new Promise<void>(resolve => { reached = resolve; });
+    const { auth } = fixture(() => { reached(); return token; });
+    const { callback, done } = await start(auth);
+    let responded = false;
+    const browser = fetch(callback).then(response => { responded = true; return response.text(); });
+    await requested;
+    expect(responded).toBe(false);
+    expect(auth.isConnected()).toBe(false);
+    expect(auth.connectionPhase()).toBe("exchanging");
+    deliver({ status: 200, json: validToken });
+    expect(await browser).toContain("Google Calendar is connected.");
+    await done;
     expect(auth.isConnected()).toBe(true);
   });
 
-  it("rejects a token response that omits the required app-created scope", async () => {
-    const secrets = new MemorySecrets();
-    const auth = manager(secrets, () => ({
-      json: {
-        accessToken: "access",
-        expiresIn: 3_600,
-        refreshToken: "must-not-be-stored",
-        scopes: ["https://www.googleapis.com/auth/calendar.events.owned"],
-      },
-      status: 200,
-    }));
-    const authorizeUrl = new URL(await auth.beginAuthorization("en"));
-    await expect(auth.completeAuthorization({
-      code: "authorization-code",
-      relay_state: "signed-relay-state",
-      state: authorizeUrl.searchParams.get("client_state") ?? "",
-    })).rejects.toThrow("permission");
-    expect(auth.isConnected()).toBe(false);
+  it("finishes valid authorization when the browser closes during token exchange", async () => {
+    let deliver!: (response: GoogleHttpResponse) => void;
+    let reached!: () => void;
+    const token = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const requested = new Promise<void>(resolve => { reached = resolve; });
+    const { auth } = fixture(() => { reached(); return token; });
+    const { callback, done } = await start(auth);
+    const browser = httpRequest(callback);
+    browser.on("error", () => {});
+    browser.end();
+    await requested;
+    const closed = new Promise<void>(resolve => { browser.once("close", resolve); });
+    browser.destroy();
+    await closed;
+    deliver({ status: 200, json: validToken });
+    await done;
+    expect(auth.isConnected()).toBe(true);
+    await expect(fetch(callback)).rejects.toThrow();
   });
 
-  it("fails closed when a token response or relay configuration is invalid", async () => {
-    const secrets = new MemorySecrets();
-    const auth = manager(secrets, () => ({ json: { error: "invalid_grant" }, status: 400 }));
-    secrets.setSecret("link-calendar-google-refresh-token", "refresh-secret");
-    await expect(auth.getAccessToken()).rejects.toThrow("invalid_grant");
-
-    const unavailable = new GoogleAuthManager("", async () => ({ json: {}, status: 500 }), secrets);
-    expect(unavailable.isAvailable()).toBe(false);
-    await expect(unavailable.beginAuthorization("en")).rejects.toThrow("not configured");
+  it("does not store a late token after the connection deadline expires", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    let deliver!: (response: GoogleHttpResponse) => void;
+    let reached!: () => void;
+    const token = new Promise<GoogleHttpResponse>(resolve => { deliver = resolve; });
+    const requested = new Promise<void>(resolve => { reached = resolve; });
+    const { auth } = fixture(() => { reached(); return token; });
+    const { callback, done } = await start(auth);
+    const rejected = expect(done).rejects.toThrow("expired");
+    const browser = fetch(callback).catch(() => undefined);
+    await requested;
+    await vi.advanceTimersByTimeAsync(600000);
+    await rejected;
+    deliver({ status: 200, json: validToken });
+    await browser;
+    expect(auth.isConnected()).toBe(false);
+    expect(auth.connectionPhase()).toBe("expired");
   });
 });

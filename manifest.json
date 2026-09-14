@@ -1,10 +1,10 @@
 {
   "id": "link-calendar",
   "name": "Manta Calendar",
-  "version": "3.6.6",
+  "version": "4.0.0",
   "minAppVersion": "1.13.0",
   "description": "Turn Markdown dates into a low-noise Vault timeline, with optional two-way Google Calendar synchronization.",
   "author": "Woonyong Choi",
   "authorUrl": "https://github.com/woonyong-choi",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }
