@@ -1,231 +1,173 @@
 import type { GoogleHttpClient } from "./google-calendar";
+import { listenForGoogleAuthorization } from "./google-loopback";
 
-const PENDING_SECRET = "link-calendar-google-pending-oauth";
-const REFRESH_TOKEN_SECRET = "link-calendar-google-refresh-token";
-const REQUIRED_SCOPES = new Set([
-  "https://www.googleapis.com/auth/calendar.app.created",
-]);
-const PENDING_MAX_AGE_MS = 10 * 60 * 1_000;
+const TOKEN_SECRET = "link-calendar-google-desktop-authorization";
+const REQUIRED_SCOPE = "https://www.googleapis.com/auth/calendar.app.created";
+const TOKEN_URL = "https://oauth2.googleapis.com/token";
+const REVOKE_URL = "https://oauth2.googleapis.com/revoke";
 
 export interface SecretStore {
   getSecret(id: string): string | null;
   setSecret(id: string, secret: string): void;
 }
 
-export interface OAuthProtocolData {
-  code?: string;
-  error?: string;
-  relay_state?: string;
-  state?: string;
-}
-
-interface TokenResponse {
-  accessToken: string;
-  expiresAt: number;
-  refreshToken: string;
-  scopes: string[];
-}
-
-interface PendingAuthorization {
-  createdAt: number;
-  state: string;
-  verifier: string;
-}
-
-export class GoogleAuthError extends Error {}
-
-export function parseGoogleReturnLink(value: string): OAuthProtocolData {
-  let url: URL;
-  try { url = new URL(value.trim()); }
-  catch { throw new GoogleAuthError("Paste the link from the Open Obsidian button, not the Google page address."); }
-  if (url.protocol !== "obsidian:" || url.hostname !== "link-calendar-google"
-    || url.pathname !== "" || url.username || url.password || url.port || url.hash) {
-    throw new GoogleAuthError("This is not a Manta Calendar authorization return link.");
-  }
-  for (const key of ["code", "error", "relay_state", "state"]) {
-    if (url.searchParams.getAll(key).length > 1) {
-      throw new GoogleAuthError("The authorization return link contains duplicate parameters.");
-    }
-  }
-  return Object.fromEntries(["code", "error", "relay_state", "state"].map(
-    (key) => [key, url.searchParams.get(key) ?? ""],
-  ));
-}
-
-export type ConnectionPhase = "idle" | "waiting" | "returned" | "exchanging" | "connected" | "failed" | "expired";
+export type ConnectionPhase = "idle" | "waiting" | "exchanging" | "connected" | "failed" | "expired";
 
 export class GoogleAuthManager {
   private phase: ConnectionPhase = "idle";
   private connectionGeneration = 0;
-
-  connectionPhase(): ConnectionPhase {
-    if (this.phase === "waiting" || this.phase === "idle") {
-      try { this.readPending(); return "waiting"; }
-      catch { if (this.phase === "waiting") return "expired"; }
-    }
-    return this.phase === "idle" && this.isConnected() ? "connected" : this.phase;
-  }
+  private pending?: Awaited<ReturnType<typeof listenForGoogleAuthorization>>;
   private accessToken = "";
   private accessTokenExpiresAt = 0;
 
   constructor(
-    private readonly relayUrl: string,
+    private readonly clientId: string,
     private readonly http: GoogleHttpClient,
     private readonly secrets: SecretStore,
     private readonly now: () => number = () => Date.now(),
   ) {}
 
-  isAvailable(): boolean {
-    return /^https:\/\//.test(this.relayUrl);
+  connectionPhase(): ConnectionPhase {
+    return this.phase === "idle" && this.isConnected() ? "connected" : this.phase;
   }
 
-  isConnected(): boolean {
-    return Boolean(this.secrets.getSecret(REFRESH_TOKEN_SECRET));
-  }
+  isAvailable(): boolean { return /^\d+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(this.clientId); }
+  isConnected(): boolean { return Boolean(this.refreshToken()); }
 
-  async beginAuthorization(locale: string): Promise<string> {
-    if (!this.isAvailable()) throw new GoogleAuthError("Google Calendar connection is not configured.");
+  async connect(locale: string, openBrowser: (url: string) => void | Promise<void>): Promise<void> {
+    if (!this.isAvailable()) throw new Error("Google desktop connection is not configured.");
+    this.cancel();
+    const generation = this.connectionGeneration;
+    this.phase = "waiting";
     const state = randomBase64Url(32);
     const verifier = randomBase64Url(64);
-    const challenge = await sha256Base64Url(verifier);
-    this.secrets.setSecret(PENDING_SECRET, JSON.stringify({ createdAt: this.now(), state, verifier }));
-    const url = new URL("oauth/authorize", ensureTrailingSlash(this.relayUrl));
-    url.searchParams.set("client_state", state);
-    url.searchParams.set("code_challenge", challenge);
-    url.searchParams.set("locale", locale === "ko" ? "ko" : "en");
-    this.phase = "waiting";
-    return url.toString();
-  }
-
-  async completeAuthorization(data: OAuthProtocolData): Promise<void> {
-    const generation = this.connectionGeneration;
-    this.phase = "returned";
+    let listener: Awaited<ReturnType<typeof listenForGoogleAuthorization>> | undefined;
     try {
-      const pending = this.readPending();
-      if (data.error) throw new GoogleAuthError("Google authorization was cancelled. Start a new connection from settings.");
-      if (!data.code || !data.relay_state || !data.state || data.state !== pending.state) {
-        throw new GoogleAuthError("Google authorization response did not match this connection request.");
-      }
-      this.secrets.setSecret(PENDING_SECRET, "");
+      listener = await listenForGoogleAuthorization(state, locale);
+      this.requireCurrentConnection(generation);
+      this.pending = listener;
+      const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+      url.search = new URLSearchParams({
+        client_id: this.clientId,
+        redirect_uri: listener.redirectUri,
+        response_type: "code",
+        scope: REQUIRED_SCOPE,
+        access_type: "offline",
+        prompt: "consent",
+        code_challenge: await sha256Base64Url(verifier),
+        code_challenge_method: "S256",
+        state,
+        hl: locale === "ko" ? "ko" : "en",
+      }).toString();
+      this.requireCurrentConnection(generation);
+      await openBrowser(url.toString());
+      const code = await listener.code;
+      this.requireCurrentConnection(generation);
       this.phase = "exchanging";
-      const token = await this.postToken("oauth/token", {
-        code: data.code,
-        relayState: data.relay_state,
-        verifier: pending.verifier,
+      const token = await this.postToken({
+        code, code_verifier: verifier, grant_type: "authorization_code", redirect_uri: listener.redirectUri,
       });
       this.requireCurrentConnection(generation);
       this.acceptToken(token, true);
       this.phase = "connected";
     } catch (error) {
-      if (generation === this.connectionGeneration) this.phase = "failed";
+      if (generation === this.connectionGeneration) {
+        this.phase = error instanceof Error && error.name === "TimeoutError" ? "expired" : "failed";
+      }
       throw error;
+    } finally {
+      listener?.close();
+      if (this.pending === listener) this.pending = undefined;
     }
+  }
+
+  cancel(): void {
+    this.connectionGeneration++;
+    this.pending?.close();
+    this.pending = undefined;
+    this.phase = "idle";
   }
 
   async getAccessToken(): Promise<string> {
     const generation = this.connectionGeneration;
     if (this.accessToken && this.accessTokenExpiresAt - this.now() > 60_000) return this.accessToken;
-    const refreshToken = this.secrets.getSecret(REFRESH_TOKEN_SECRET);
-    if (!refreshToken) throw new GoogleAuthError("Google Calendar is not connected.");
-    const token = await this.postToken("oauth/refresh", { refreshToken });
+    const refreshToken = this.refreshToken();
+    if (!refreshToken) throw new Error("Google Calendar is not connected. Connect again using direct desktop sign-in.");
+    const token = await this.postToken({ grant_type: "refresh_token", refresh_token: refreshToken });
     this.requireCurrentConnection(generation);
     this.acceptToken(token, false);
     return this.accessToken;
   }
 
   async disconnect(): Promise<void> {
-    // A completed revocation must not be undone by an older token response.
-    this.connectionGeneration += 1;
-    const refreshToken = this.secrets.getSecret(REFRESH_TOKEN_SECRET);
-    if (refreshToken && this.isAvailable()) {
+    this.cancel();
+    const refreshToken = this.refreshToken();
+    if (refreshToken) {
       const response = await this.http({
-        body: JSON.stringify({ refreshToken }),
-        headers: { "Content-Type": "application/json" },
+        url: REVOKE_URL,
         method: "POST",
-        url: new URL("oauth/revoke", ensureTrailingSlash(this.relayUrl)).toString(),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ token: refreshToken }).toString(),
       });
       if (response.status < 200 || response.status >= 300) {
-        throw new GoogleAuthError("Google access could not be revoked. Try again before disconnecting locally.");
+        throw new Error("Google access could not be revoked. Try again before disconnecting locally.");
       }
     }
-    this.connectionGeneration += 1;
-    this.phase = "idle";
+    this.cancel();
     this.accessToken = "";
     this.accessTokenExpiresAt = 0;
-    this.secrets.setSecret(REFRESH_TOKEN_SECRET, "");
-    this.secrets.setSecret(PENDING_SECRET, "");
+    this.secrets.setSecret(TOKEN_SECRET, "");
+  }
+
+  private refreshToken(): string {
+    try {
+      const value: unknown = JSON.parse(this.secrets.getSecret(TOKEN_SECRET) ?? "null");
+      return isRecord(value) && value.clientId === this.clientId && typeof value.refreshToken === "string" ? value.refreshToken : "";
+    } catch { return ""; }
   }
 
   private requireCurrentConnection(generation: number): void {
-    if (generation !== this.connectionGeneration) {
-      throw new GoogleAuthError("Google connection changed while authorization was pending. Try again from settings.");
-    }
+    if (generation !== this.connectionGeneration) throw new Error("Google connection changed while authorization was pending. Try again from settings.");
   }
 
-  private readPending(): PendingAuthorization {
-    const raw = this.secrets.getSecret(PENDING_SECRET);
-    if (!raw) throw new GoogleAuthError("The Google connection request expired. Start again from settings.");
-    try {
-      const value: unknown = JSON.parse(raw);
-      if (!isRecord(value)
-        || typeof value.createdAt !== "number"
-        || typeof value.state !== "string"
-        || typeof value.verifier !== "string"
-        || this.now() - value.createdAt > PENDING_MAX_AGE_MS) {
-        throw new Error("invalid pending authorization");
-      }
-      return value as unknown as PendingAuthorization;
-    } catch {
-      throw new GoogleAuthError("The Google connection request expired. Start again from settings.");
-    }
-  }
-
-  private async postToken(path: string, body: Record<string, string>): Promise<TokenResponse> {
-    if (!this.isAvailable()) throw new GoogleAuthError("Google Calendar connection is not configured.");
+  private async postToken(parameters: Record<string, string>): Promise<unknown> {
+    if (!this.isAvailable()) throw new Error("Google desktop connection is not configured.");
     const response = await this.http({
-      body: JSON.stringify(body),
-      headers: { "Content-Type": "application/json" },
+      url: TOKEN_URL,
       method: "POST",
-      url: new URL(path, ensureTrailingSlash(this.relayUrl)).toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ client_id: this.clientId, ...parameters }).toString(),
     });
     if (response.status < 200 || response.status >= 300) {
-      const value = isRecord(response.json) ? response.json : {};
-      const message = typeof value.error === "string" ? value.error : "Google authorization failed.";
-      throw new GoogleAuthError(message);
+      const reason = isRecord(response.json) && response.json.error === "invalid_grant"
+        ? "Google access expired or was revoked. Connect again."
+        : "Google authorization failed. Check your connection and try again.";
+      throw new Error(reason);
     }
-    return normalizeTokenResponse(response.json, this.now());
+    return response.json;
   }
 
-  private acceptToken(token: TokenResponse, requireRefreshToken: boolean): void {
-    if (requireRefreshToken && !token.refreshToken) {
-      throw new GoogleAuthError("Google did not return offline access. Revoke access and connect again.");
+  private acceptToken(value: unknown, requireRefreshToken: boolean): void {
+    if (!isRecord(value) || typeof value.access_token !== "string" || !value.access_token
+      || typeof value.expires_in !== "number" || !Number.isFinite(value.expires_in) || value.expires_in <= 0
+      || value.token_type !== "Bearer") throw new Error("Google returned an invalid authorization response.");
+    const scope = typeof value.scope === "string" ? value.scope.split(/\s+/) : [];
+    if ((requireRefreshToken || value.scope !== undefined) && !scope.includes(REQUIRED_SCOPE)) {
+      throw new Error("Required Google Calendar permission was not granted.");
     }
-    for (const scope of REQUIRED_SCOPES) {
-      if (!token.scopes.includes(scope)) throw new GoogleAuthError("Required Google Calendar permission was not granted.");
+    if (requireRefreshToken && (typeof value.refresh_token !== "string" || !value.refresh_token)) {
+      throw new Error("Google did not return offline access. Connect again and allow Calendar access.");
     }
-    this.accessToken = token.accessToken;
-    this.accessTokenExpiresAt = token.expiresAt;
-    if (token.refreshToken) this.secrets.setSecret(REFRESH_TOKEN_SECRET, token.refreshToken);
+    this.accessToken = value.access_token;
+    this.accessTokenExpiresAt = this.now() + value.expires_in * 1000;
+    if (typeof value.refresh_token === "string" && value.refresh_token) {
+      this.secrets.setSecret(TOKEN_SECRET, JSON.stringify({ clientId: this.clientId, refreshToken: value.refresh_token }));
+    }
   }
-}
-
-function normalizeTokenResponse(value: unknown, now: number): TokenResponse {
-  if (!isRecord(value)) throw new GoogleAuthError("Google returned an invalid authorization response.");
-  const accessToken = typeof value.accessToken === "string" ? value.accessToken : "";
-  const refreshToken = typeof value.refreshToken === "string" ? value.refreshToken : "";
-  const expiresIn = typeof value.expiresIn === "number" ? value.expiresIn : 0;
-  const scopes = Array.isArray(value.scopes)
-    ? value.scopes.filter((scope): scope is string => typeof scope === "string")
-    : [];
-  if (!accessToken || expiresIn <= 0) {
-    throw new GoogleAuthError("Google returned an invalid authorization response.");
-  }
-  return { accessToken, expiresAt: now + expiresIn * 1_000, refreshToken, scopes };
 }
 
 function randomBase64Url(length: number): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return bytesToBase64Url(bytes);
+  return bytesToBase64Url(crypto.getRandomValues(new Uint8Array(length)));
 }
 
 async function sha256Base64Url(value: string): Promise<string> {
@@ -237,10 +179,6 @@ function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function ensureTrailingSlash(value: string): string {
-  return value.endsWith("/") ? value : `${value}/`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

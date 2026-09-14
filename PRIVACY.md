@@ -1,8 +1,8 @@
 # Privacy policy
 
-Last updated: 2026-09-09
+Last updated: 2026-09-14 · Applies to version 4.0.0 and later.
 
-Public web copy: [link-calendar-oauth.woonyong.com/privacy](https://link-calendar-oauth.woonyong.com/privacy)
+For version 3.x, see the [previous privacy policy](https://github.com/woonyong-choi/manta-calendar/blob/3.6.6/PRIVACY.md).
 
 Manta Calendar is an open-source Obsidian plugin. Its calendar index runs locally by default. Google Calendar integration is optional and disabled until a user explicitly enables and connects it.
 
@@ -21,20 +21,23 @@ When two-way synchronization is explicitly enabled, the plugin reads events from
 - The Google refresh token is stored locally with Obsidian `SecretStorage`.
 - Calendar mapping identifiers and sync fingerprints are stored in the plugin's local settings.
 - Access tokens are held in memory only.
-- OAuth codes and tokens pass through the Link Calendar OAuth relay for exchange, refresh, and revocation. The relay does not persist them.
+- The default browser returns a one-use authorization code to a temporary listener on the same computer (`127.0.0.1`). The listener accepts only the matching connection and closes after completion, cancellation, or ten minutes.
+- Code exchange, token refresh, and revocation go directly from Obsidian to Google. No maintainer domain, Cloudflare Worker, or Manta service receives the code or tokens.
 - Google event data goes directly between the user's Obsidian app and Google Calendar.
 - No Google user data is sold, used for advertising, shared with data brokers, or used to train AI models.
-- The plugin and relay do not use analytics or telemetry.
+- The plugin does not use analytics or telemetry.
 
 Google processes data under its own terms and privacy policy when the user chooses this integration.
 
 ## Retention and deletion
 
-Disconnecting in plugin settings asks Google to revoke the grant and removes locally stored tokens and mappings. Uninstalling the plugin removes its local settings according to Obsidian's behavior. Events already written to the dedicated Google calendar remain under the user's control; the plugin never treats local deletion as permission to delete a remote event. Users can delete the dedicated calendar in Google Calendar at any time.
+Disconnecting in plugin settings asks Google to revoke the grant, then removes the direct connection's locally stored token and mappings. If revocation fails, the connection is retained so the user can retry. Google revocation applies across clients in the same Google Cloud project and can require other installations to reconnect. Events already written to the dedicated Google calendar remain under the user's control; the plugin never treats local deletion as permission to delete a remote event. Users can delete the dedicated calendar in Google Calendar at any time.
+
+Upgrading from 3.x requires a new direct sign-in. Version 4 never reads or sends the old relay token. The obsolete secret is left in Obsidian SecretStorage for rollback; uninstalling plugin files does not establish that Obsidian has erased secrets. Users can manage saved secrets in Obsidian and revoke access in their Google Account. Existing calendar mappings and notes remain intact during the upgrade.
 
 ## Security
 
-OAuth uses Authorization Code with PKCE, signed short-lived state, an exact redirect URI, and no token-bearing URLs. Remote edits are protected by ETag conflict checks. See [SECURITY.md](SECURITY.md) for implementation details and vulnerability reporting.
+OAuth uses Authorization Code with PKCE (S256), random in-memory state, an exact loopback callback, and no token-bearing URLs. Remote edits are protected by ETag conflict checks. See [SECURITY.md](SECURITY.md) for implementation details and vulnerability reporting.
 
 ## Contact
 

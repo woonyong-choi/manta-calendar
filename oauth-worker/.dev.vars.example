@@ -1,4 +1,0 @@
-GOOGLE_CLIENT_ID=replace-with-a-google-web-client-id
-GOOGLE_CLIENT_SECRET=replace-with-a-google-web-client-secret
-STATE_SECRET=replace-with-at-least-32-random-characters
-PUBLIC_BASE_URL=https://replace-with-your-worker-origin.example/

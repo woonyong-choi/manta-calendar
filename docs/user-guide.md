@@ -70,7 +70,7 @@ Source selection explicitly permits sending events, independently of whether the
 
 The dedicated calendar appears in Google Calendar on desktop and mobile, so its normal notifications remain available even when Obsidian is closed. Obsidian must be open when you run a sync; synchronization does not run in the background.
 
-Only the narrow `calendar.app.created` permission is requested. Refresh tokens stay in Obsidian `SecretStorage`; note bodies are not sent to the OAuth relay. See [Google Calendar privacy and security](google-calendar.md) and the [privacy policy](../PRIVACY.md).
+Only the narrow `calendar.app.created` permission is requested. Refresh tokens stay in Obsidian `SecretStorage`. Authorization, token refresh, and event requests go directly from your computer to Google; no Manta domain or server receives them. See [Google Calendar privacy and security](google-calendar.md) and the [privacy policy](../PRIVACY.md).
 
 </details>
 
@@ -145,7 +145,7 @@ Month navigation keeps the selected day and agenda synchronized. Multi-day perio
 - Select **Today** or run **Show today in Manta Calendar** to return to the current date.
 - Use search, source filters, and focus mode without changing Markdown.
 
-The UI uses Obsidian semantic theme variables, supports narrow side panes and mobile layouts, and respects reduced motion and forced colors.
+The UI uses Obsidian semantic theme variables, supports narrow desktop side panes, and respects reduced motion and forced colors.
 
 ## Optional source profiles
 
@@ -181,7 +181,7 @@ title: Learning calendar
 - The local calendar index has no persistent event database; optional Google sync stores only mapping IDs, ETags, and fingerprints needed for safe retries.
 - With Google Calendar disabled, no note body, title, date, or path leaves the app.
 - With Google Calendar enabled, only mapped event titles and start/end values are sent directly to Google Calendar during an explicit sync.
-- The OAuth relay exchanges and refreshes Google tokens but does not store tokens, notes, events, or analytics.
+- Login uses your default browser and a temporary callback on your own computer. Google tokens are exchanged and refreshed directly with Google; there is no authentication relay or analytics.
 - Automatic body reads are batched so Obsidian can render between batches.
 - The test suite includes a 5,000-note automatic-index fixture.
 - Explicit writable-profile ranges longer than 370 days are rejected as diagnostics.
@@ -198,23 +198,23 @@ Version 3.6.3 discards late Google token responses after disconnecting and late 
 - **Create or drag is unavailable:** automatic items are read-only; enable a valid writable folder profile for mutations.
 - **A move was rejected:** the Markdown changed after indexing or no longer matches the configured source.
 - **Search shows no results:** clear the query and source filters to restore the month.
-- **Google Calendar is unavailable:** check the connection settings and retry. Clean-checkout builds use the versioned public relay origin; custom development builds can override `LINK_CALENDAR_GOOGLE_RELAY_URL`.
-- **Open Obsidian does nothing after Google authorization:** copy the **Open Obsidian** button's link address and paste it into **Finish connection** in this plugin's settings in the Vault where you started connecting. Use a fresh link within ten minutes and never share it.
+- **Google Calendar is unavailable:** use the official desktop release. Development builds need a registered public Desktop app client ID. End users do not enter developer credentials.
+- **Google connection stays waiting:** keep Obsidian open on the computer where you started. Complete Google approval in that computer's default browser; return to Obsidian to check the result. Cancel and reconnect if ten minutes pass or the callback is blocked. Check whether a firewall prevents Obsidian from receiving loopback connections; do not disable your firewall globally.
+- **Upgrading from 3.x:** connect Google once again on each computer. Existing calendars, source selections, and mappings are preserved. Old authorization links and relay tokens are no longer used.
 - **A Google event was not overwritten:** check the sync summary. A remote ETag change is reported as a conflict instead of being replaced.
 - **A deleted note remains in Google:** this is intentional. Remote deletion is never inferred from a missing local file.
-- **The dedicated Google calendar was deleted:** sync stops instead of recreating it silently. Disconnect and connect again only if you want a new dedicated calendar.
+- **The dedicated Google calendar is unavailable:** use **Create calendar if unavailable** to check access and explicitly create an empty replacement after a 404. This preserves previous mappings and does not sync events automatically.
 
 ## Installation and compatibility
 
-Current release: **3.6.4**, for Obsidian **1.13.0+** on desktop and mobile.
+Version **4.0.0** requires Obsidian **1.13.0+** on **macOS or Windows**. Obsidian mobile on iOS and Android is not supported.
 
-| Feature | Desktop | Mobile | Network |
+| Feature | macOS | Windows | Network |
 | --- | --- | --- | --- |
 | Local month, agenda, and note navigation | Supported | Supported | None |
 | Google sync | Supported | Supported | Needed when connecting or selecting Sync now |
 | Google reminders after a sync | Managed by Google Calendar | Managed by Google Calendar | Obsidian can be closed |
 
-Recent captures use desktop Obsidian 1.13.7. They do not represent a fresh mobile-device test.
+Recent captures use desktop Obsidian 1.13.7 and show the calendar view. Google Calendar's own mobile app can still show events that were synced from a PC; the Obsidian plugin itself runs only on desktop.
 
 For a manual release install, download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/woonyong-choi/manta-calendar/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
-

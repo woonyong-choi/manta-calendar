@@ -3,6 +3,7 @@ import { PluginSettingTab, type App, type SettingGroupItem } from "obsidian";
 
 import { DEFAULT_SETTINGS, createProfile, normalizeSettings, serializeSettings, type CalendarSettings } from "../src/model";
 import { LinkCalendarSettingTab, type SettingsHost } from "../src/settings";
+import type { ConnectionPhase } from "../src/google-auth";
 
 function tab(overrides: Partial<CalendarSettings> = {}, connected = false) {
   const settings = structuredClone(DEFAULT_SETTINGS);
@@ -12,11 +13,12 @@ function tab(overrides: Partial<CalendarSettings> = {}, connected = false) {
     app: {} as App,
     chooseFolder: vi.fn(),
     connectGoogle: vi.fn(async () => {}),
-    completeGoogleFromLink: vi.fn(async () => {}),
+    cancelGoogleConnection: vi.fn(),
     disconnectGoogle: vi.fn(async () => {}),
     ensureGoogleCalendar: vi.fn(async () => {}),
     googleAvailable: () => true,
     googleConnected: () => connected,
+    googleConnectionPhase: vi.fn<() => ConnectionPhase>(() => "idle"),
     saveSettings,
     settings,
     sourceHealth: () => ({ invalid: 0, missing: 0, total: 1, valid: 1 }),
@@ -140,6 +142,23 @@ describe("Google Calendar settings boundary", () => {
     expect(fixture.host.settings.googleCalendar.enabled).toBe(true);
     expect(fixture.host.connectGoogle).not.toHaveBeenCalled();
     expect(fixture.saveSettings).toHaveBeenCalledOnce();
+  });
+
+  it("offers cancellation while approval is pending and cancels when Google is disabled", async () => {
+    const fixture = tab({ locale: "en" });
+    fixture.host.settings.googleCalendar.enabled = true;
+    fixture.host.googleConnectionPhase.mockReturnValue("waiting");
+    fixture.tab.display();
+    expect(fixture.tab.containerEl.querySelector<HTMLButtonElement>('[data-name="Connect Google Calendar"] button')?.disabled).toBe(true);
+    const cancel = fixture.tab.containerEl.querySelector<HTMLButtonElement>('[data-name="Cancel connection"] button');
+    expect(cancel).not.toBeNull();
+    cancel?.click();
+    expect(fixture.host.cancelGoogleConnection).toHaveBeenCalledOnce();
+    fixture.host.cancelGoogleConnection.mockClear();
+    await fixture.tab.setControlValue("googleEnabled", false);
+    expect(fixture.host.cancelGoogleConnection).toHaveBeenCalledOnce();
+    expect(fixture.host.settings.googleCalendar.enabled).toBe(false);
+    expect(fixture.host.connectGoogle).not.toHaveBeenCalled();
   });
 
   it("exposes explicit calendar recovery separately from source synchronization", () => {

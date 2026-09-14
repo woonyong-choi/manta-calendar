@@ -1,18 +1,20 @@
 # Google Calendar integration
 
-Link Calendar's Google integration is optional. Sending selected Markdown events is the default; two-way synchronization is enabled by choosing a writable incoming source.
+Manta Calendar's Google integration is optional and supports desktop Obsidian on macOS and Windows. Sending selected Markdown events is the default; two-way synchronization is enabled by choosing a writable incoming source.
 
 ## User flow
 
-1. Configure a folder source in Link Calendar.
+1. Configure a folder source in Manta Calendar.
 2. Enable Google Calendar in plugin settings.
 3. Select **Connect Google Calendar** and approve the single requested permission in the browser.
-4. The callback tries to reopen Obsidian automatically. If the browser blocks the app link, select **Open Obsidian** on the completion page. If nothing happens, copy that button's link address and paste it into **Finish connection** in Link Calendar settings in the same Vault where you started connecting. Use a fresh link within ten minutes; never share it. This fallback uses the same request matching, expiration, and PKCE checks as automatic completion.
+4. Keep Obsidian open on the same computer. The browser returns the approval to that computer automatically. Return to Obsidian, using **Open Obsidian** on the completion page if needed, and check the connection result. No link or code needs to be copied.
 5. Enable one or more source mappings to allow sending their events. Read-only editing and `access: local-only` are separate settings. An explicit `external_sync: deny` prevents sending a selected note.
 6. Optionally choose **Two-way sync destination** to receive new Google events and Google edits. Existing settings remain send-only until you opt in.
 7. Select **Sync now**.
 
-The plugin creates one dedicated secondary calendar named **Link Calendar**. No Google developer credentials are required from end users.
+The plugin creates one dedicated secondary calendar named **Link Calendar**. End users need only their own Google account; no domain, server, or Google developer credentials are required. Each computer signs in separately.
+
+**Upgrading from 3.x:** sign in once again. Existing calendar identifiers, source selections, installation identity, and event mappings are kept. The old relay token is ignored, and old authorization links cannot finish a version 4 connection. Reconnecting does not sync events or replace an unavailable calendar automatically.
 
 ## What sync owns
 
@@ -36,65 +38,38 @@ The plugin creates one dedicated secondary calendar named **Link Calendar**. No 
 
 Stable local keys and deterministic Google event IDs make a retry idempotent. A 409 response is adopted only when the remote private ownership marker matches; otherwise it is reported as a conflict. A mapping without an ETag is rejected, so updates can never fall back to an unconditional overwrite.
 
-## OAuth and relay
+## Direct desktop authorization
 
-The cross-platform callback uses a small Cloudflare Worker relay because Obsidian runs on desktop and mobile. The relay:
+Google documents the [Desktop app loopback flow](https://developers.google.com/identity/protocols/oauth2/native-app#redirect-uri_loopback) for macOS and Windows. Version 4 uses that flow:
 
-- uses Authorization Code with PKCE;
-- signs state with a short expiration;
-- accepts only the fixed `obsidian://link-calendar-google` return URI;
-- requests only `calendar.app.created`;
-- exchanges, refreshes, and revokes tokens without storing them;
-- rejects malformed or oversized requests and disables observability.
+1. Obsidian starts a temporary HTTP listener at `127.0.0.1` on a random available port. It is reachable only from the same computer.
+2. The default browser opens Google's authorization page with the public Desktop app client ID, a PKCE S256 challenge, and random state.
+3. After consent, Google redirects the browser to that local callback. The listener accepts one matching response and closes.
+4. Obsidian exchanges the code and its in-memory PKCE verifier directly at `oauth2.googleapis.com`. Refresh and revocation requests also go directly to Google.
+5. The refresh token stays in Obsidian `SecretStorage`; access tokens remain in memory. Calendar API requests go directly to Google Calendar.
 
-After Google returns to the HTTPS callback, the relay serves a no-store completion page. It attempts the fixed Obsidian app link automatically and keeps a visible, keyboard-accessible **Open Obsidian** action as a recovery path for browsers that require a user gesture before opening another app.
+No maintainer domain, Cloudflare Worker, or shared Manta service receives authorization codes, tokens, or calendar requests. The callback page loads no external resources and contains no authorization parameters. Cancelling, unloading the plugin, or waiting ten minutes closes the listener. See [PRIVACY.md](../PRIVACY.md).
 
-The refresh token remains in Obsidian `SecretStorage`. Calendar API requests are made directly from Obsidian. See [PRIVACY.md](../PRIVACY.md).
+Obsidian must remain open to complete sign-in or run a manual sync. Existing Google events and Google's notifications remain available when it is closed. Mobile Obsidian is not supported; this does not prevent using Google's own mobile calendar app.
 
-## Maintainer deployment
+## App registration and release
 
-The relay source is isolated under `oauth-worker/`. Provider changes should stay behind that adapter; the calendar projection and local index do not depend on Cloudflare-specific APIs.
+The maintainer registers a **Desktop app** OAuth client in the application's Google Cloud project, enables the Calendar API, and maintains the OAuth consent screen. Public releases need an external production audience; a testing-only audience is not a generally available integration. Google consent-screen metadata and branding review are separate publishing requirements. An informational homepage is not a callback or a token relay.
 
-For a public release, first configure a production Google Cloud project and OAuth consent screen. Google's [OAuth branding requirements](https://support.google.com/cloud/answer/15549049) require the application homepage and privacy policy to be public on the same verified domain owned by the maintainer, and the exact relay callback origin must be registered as an authorized redirect. Keep a separate testing project while the production brand and Calendar scope are being reviewed. Do not publish a build that presents the integration as generally available while the OAuth application is limited to test users.
+Only the public client ID and the declared `desktop` type belong in `google-oauth-client.json`. Builds use this versioned file, so clean checkouts reproduce the same plugin without private environment variables. Fork maintainers register their own Desktop app client. Do not use a web application client, downloaded credentials JSON, or client secret in the plugin.
 
-Required Worker secrets:
+An empty client ID disables Google sign-in in a development build. `npm run verify:release` rejects it and verifies that the bundle contains the expected Google endpoints and no other network origins or relay credentials. CI also runs real loopback socket tests on macOS and Windows. Those tests simulate Google responses; a real Google sign-in, token refresh after restart, and access to the existing dedicated calendar must be verified separately before publishing an OAuth change.
 
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- `STATE_SECRET` (at least 32 random characters)
-- `PUBLIC_BASE_URL` (public rather than sensitive, but stored as a Worker secret so code-only deployments cannot replace it)
+## Legacy versions and rollback
 
-Required Worker configuration:
+Version 3.x used a Cloudflare OAuth relay. Its source and manual deployment workflow have been removed from version 4. The deployed legacy Worker and Google web client are separate infrastructure; this source change does not delete or reconfigure them. Removing that infrastructure requires a deliberate migration decision for existing 3.x installations. New version 4 installations do not contact it.
 
-- `PLUGIN_REDIRECT_URI=obsidian://link-calendar-google`
+Upgrades preserve obsolete relay credentials in Obsidian SecretStorage for rollback, but never read or transmit them. Do not revoke the old Google grant automatically after the new sign-in: [Google revocation](https://developers.google.com/identity/protocols/oauth2/native-app#tokenrevoke) invalidates all clients' tokens in the same project. Users can remove obsolete saved secrets through Obsidian and manage app access in their Google Account.
 
-`PUBLIC_BASE_URL` and `LINK_CALENDAR_GOOGLE_RELAY_URL` must be the same exact HTTPS origin, with no path, query, or fragment. Register `${PUBLIC_BASE_URL}/oauth/callback` as the exact Google web OAuth redirect. Never put the Google client secret or state secret into the plugin bundle.
-
-Builds derive the public origin from the versioned custom domain in `oauth-worker/wrangler.jsonc`, so `npm ci && npm run build` reproduces the official plugin without repository variables. Custom development builds can override `LINK_CALENDAR_GOOGLE_RELAY_URL` (an empty value disables the integration). Official release verification requires the versioned origin and rejects empty, local, example, credential-bearing, query-bearing, or mismatched relay URLs before an asset can be published. OAuth secrets remain outside the plugin source and bundle.
-
-The Worker also serves the OAuth application's public homepage at `/` and privacy policy at `/privacy`. Keep those pages aligned with `README.md` and `PRIVACY.md`; their tests are part of `npm run test:oauth`.
-
-`npm run verify:release` also calls the deployed `/health` endpoint with a ten-second timeout and requires protocol version `1`. The release workflow cannot publish assets when the configured relay is missing, unhealthy, or incompatible.
-
-The manual `OAuth relay` GitHub workflow runs the isolated tests, deploys only `oauth-worker/`, and rechecks the live protocol. It needs repository secrets `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`; Google and state secrets remain in Cloudflare and are not copied into GitHub.
-
-## Failure and rollback
-
-- If the relay health or protocol check fails, do not publish a plugin release.
-- A relay-only regression can be rolled back to the previous Cloudflare Worker version without rebuilding the local calendar core.
-- A plugin regression can be rolled back by reinstalling the previous official release; Markdown and the dedicated Google calendar remain intact.
-- Revoking or disconnecting clears local authorization and mappings but does not silently delete remote events.
-- Rotating `GOOGLE_CLIENT_SECRET` or `STATE_SECRET` affects new authorization flows; existing refresh grants continue only while the matching Google OAuth client remains valid.
-
-Run the isolated gates before deployment:
-
-```bash
-npm run test:oauth
-npm exec --yes wrangler@4.128.0 -- deploy --dry-run --config oauth-worker/wrangler.jsonc
-```
+A plugin rollback can reinstall the previous official assets while preserving Markdown and existing Google events. A 3.x rollback resumes that version's relay dependency. Disconnecting in version 4 revokes the Google grant before removing the direct credential and mappings; failure preserves them for retry. It never deletes remote events.
 
 ## Connection recovery
 
 If the saved calendar is unavailable after changing accounts, **Create calendar if unavailable** first checks that calendar. A 404 response permits creating an empty **Link Calendar** only for this explicit action; other errors stop recovery. A 404 can mean that the current account cannot access the calendar, so it does not prove deletion. Existing calendars, events, source selections, authorization and per-calendar mappings are preserved. Recovery does not sync events. A later **Sync now** sends allowed notes to the new calendar; it does not move or remove events from the old calendar.
 
-The settings page exposes a refreshable connection stage. Waiting means browser authorization or the return to the originating Vault has not completed; it does not mean token exchange succeeded. Use the completion page's Open Obsidian action, return to the intended Vault, then refresh connection status. Expired requests must be restarted. Failed exchange is distinct from a connected account or a usable destination calendar. Share only OS, browser, Obsidian version and stage when reporting problems; do not share callback URLs or tokens. This diagnostic does not establish that the previously reported user-specific handoff failure is fixed.
+The settings page shows a refreshable connection stage. **Waiting** means approval has not yet returned to this computer; **Exchanging** means Obsidian is contacting Google for credentials. Neither means the destination calendar is ready. Keep Obsidian open, finish approval in the same computer's browser, and return to the originating Vault. Cancel and reconnect if a request expires or the browser closes. If a firewall blocks the local callback, allow Obsidian's loopback connection rather than disabling the firewall. Share only OS, browser, Obsidian version, and connection stage in issue reports; never share callback URLs or tokens.

@@ -11,10 +11,11 @@ Manta Calendar remains a focused navigator over dated Markdown. The original not
 - Optional folder profiles with recognition preview, read-only defaults, conflict-checked writes, and one-step Undo.
 - Opt-in manual synchronization with an app-created Google calendar: selected folder profiles send mapped events; choosing a writable two-way destination also imports new non-recurring events and mapped edits.
 - Least-privilege OAuth with PKCE, Obsidian SecretStorage, deterministic upserts, ETag conflict stops, and no inferred remote deletion.
+- Direct Google account connection on macOS and Windows, with no maintainer authentication relay.
 
 ## In progress
 
-- Review first-open discoverability and narrow-panel navigation, informed by an [external Android first-open report](https://github.com/liamcain/obsidian-calendar-plugin/issues/312). This is a comparison scenario, not a confirmed defect here.
+- Review first-open discoverability and narrow-panel navigation in desktop Obsidian.
 
 ## Under consideration
 
@@ -24,6 +25,7 @@ Manta Calendar remains a focused navigator over dated Markdown. The original not
 
 ## Out of scope
 
+- Obsidian mobile on iOS and Android.
 - Replacing Google Calendar or another shared calendar.
 - Reading or mutating the primary calendar, unrelated calendars, guests, invitations, or scheduling availability.
 - Claiming continuous background sync while Obsidian is closed.

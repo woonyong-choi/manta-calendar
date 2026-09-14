@@ -1,3 +1,3 @@
-declare const __LINK_CALENDAR_GOOGLE_RELAY_URL__: string;
+declare const __MANTA_GOOGLE_CLIENT_ID__: string;
 
-export const GOOGLE_OAUTH_RELAY_URL = __LINK_CALENDAR_GOOGLE_RELAY_URL__;
+export const GOOGLE_OAUTH_CLIENT_ID = __MANTA_GOOGLE_CLIENT_ID__;

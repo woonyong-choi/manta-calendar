@@ -25,7 +25,7 @@ export interface SettingsHost {
   settings: CalendarSettings;
   chooseFolder(onChoose: (folder: TFolder) => void): void;
   connectGoogle(): Promise<void>;
-  completeGoogleFromLink(link: string): Promise<void>;
+  cancelGoogleConnection(): void;
   disconnectGoogle(): Promise<void>;
   googleAvailable(): boolean;
   googleConnected(): boolean;
@@ -211,6 +211,7 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
       return;
     } else if (key === "googleEnabled" && typeof value === "boolean") {
       this.host.settings.googleCalendar.enabled = value;
+      if (!value) this.host.cancelGoogleConnection();
     } else if (key === "googleIncomingProfile" && typeof value === "string"
       && (!value || this.host.settings.profiles.some(profile => profile.id === value && profile.enabled && profile.editable))) {
       this.host.settings.googleCalendar.incomingProfileId = value;
@@ -229,6 +230,7 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
     const locale = this.host.settings.locale;
     const google = this.host.settings.googleCalendar;
     const connected = this.host.googleConnected();
+    const connecting = ["waiting", "exchanging"].includes(this.host.googleConnectionPhase?.() ?? "idle");
     const items: SettingGroupItem[] = [
       {
         name: translate(locale, "googleEnable"),
@@ -258,7 +260,7 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
         setting.addButton((button) => {
           button
             .setButtonText(connected ? translate(locale, "googleDisconnect") : translate(locale, "googleConnect"))
-            .setDisabled(!connected && !this.host.googleAvailable())
+            .setDisabled(connecting || (!connected && !this.host.googleAvailable()))
             .onClick(() => {
               void (connected ? this.host.disconnectGoogle() : this.host.connectGoogle())
                 .then(() => this.update());
@@ -266,35 +268,11 @@ export class LinkCalendarSettingTab extends PluginSettingTab {
         });
       },
     });
-    if (!connected) {
-      items.push({
-        name: translate(locale, "googleFinishConnection"),
-        desc: translate(locale, "googleFinishConnectionDesc"),
-        render: (setting) => {
-          let returnLink = "";
-          setting.addText((input) => {
-            input.inputEl.type = "password";
-            input.inputEl.autocomplete = "off";
-            input.setPlaceholder(translate(locale, "googleReturnLink"))
-              .onChange((value) => { returnLink = value; });
-            setting.addButton((button) => {
-              button.setButtonText(translate(locale, "googleFinishConnection"))
-                .onClick(() => {
-                  const link = returnLink;
-                  returnLink = "";
-                  input.setValue("");
-                  button.setDisabled(true);
-                  void this.host.completeGoogleFromLink(link).finally(() => {
-                    button.setDisabled(false);
-                    this.update();
-                  });
-                });
-            });
-          });
-        },
-      });
-      return items;
-    }
+    if (connecting) items.push({
+      name: translate(locale, "googleCancelConnection"),
+      action: () => { this.host.cancelGoogleConnection(); },
+    });
+    if (!connected) return items;
     items.push({
       name: translate(locale, "googleCalendarTarget"),
       desc: google.calendar?.name ?? translate(locale, "googleNoCalendars"),

@@ -34,9 +34,8 @@ jobs:
           test "$conclusion" = success
       - run: npm ci
       - run: npm run build
-      - run: LINK_CALENDAR_REQUIRE_GOOGLE_RELAY=1 node scripts/verify-google-build.mjs
+      - run: node scripts/verify-google-build.mjs
       - run: node scripts/verify-release.mjs
-      - run: npm run verify:relay
       - name: Require main branch
         if: github.ref != 'refs/heads/main'
         run: |

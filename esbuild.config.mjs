@@ -1,14 +1,14 @@
 import esbuild from "esbuild";
-import { googleRelayUrl } from "./scripts/google-build-config.mjs";
+import { googleClientId } from "./scripts/google-build-config.mjs";
 
 const production = process.argv[2] === "production";
 const context = await esbuild.context({
   entryPoints: ["src/main.ts"],
   bundle: true,
   define: {
-    __LINK_CALENDAR_GOOGLE_RELAY_URL__: JSON.stringify(googleRelayUrl),
+    __MANTA_GOOGLE_CLIENT_ID__: JSON.stringify(googleClientId),
   },
-  external: ["obsidian", "electron", "@codemirror/*", "@lezer/*"],
+  external: ["node:http", "node:timers", "obsidian", "electron", "@codemirror/*", "@lezer/*"],
   format: "cjs",
   logLevel: "info",
   minify: production,

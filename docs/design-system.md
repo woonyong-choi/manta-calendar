@@ -31,7 +31,7 @@ The agenda may show only the canonical note and the unique notes that supplied t
 - Present the agenda as a typographic timeline: time, temporal kind, canonical title, then compact provenance.
 - Use icons for icon-only actions, with accessible names and tooltips.
 - Keep touch/click targets at the shared control height.
-- On narrower containers, float the agenda as a bounded drawer; on mobile widths, anchor it to the bottom.
+- On narrower desktop panes, float the agenda as a bounded drawer; on the narrowest panes, anchor it to the bottom.
 - Respect reduced motion and forced colors.
 
 ## Interaction rules
