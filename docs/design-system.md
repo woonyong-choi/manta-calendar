@@ -25,7 +25,8 @@ The agenda may show only the canonical note and the unique notes that supplied t
 
 ## Visual rules
 
-- Use Obsidian semantic variables for canvas, panel, text, borders, accent, focus, type, radius, motion, and contrast.
+- Match the published Wiki code-block canvas: `#ffffff` in light mode and `#0d1117` in dark mode; panels use the same canvas. Forced colors use system Canvas.
+- Use Obsidian semantic variables for text, borders, accent, focus, type, radius, motion, and contrast.
 - Use quiet kind accents on compact event-title rows; category never changes the month hierarchy.
 - Keep month cells free of cards; reveal up to three single-line titles with ellipsis and one readable overflow row.
 - Present the agenda as a typographic timeline: time, temporal kind, canonical title, then compact provenance.

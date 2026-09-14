@@ -8,9 +8,16 @@ Find dated notes in a calendar and open them with one click.
 
 Version: **3.6.6** · Obsidian **1.13.0+** · Desktop and mobile. See [release notes](CHANGELOG.md) for changes and the [roadmap](ROADMAP.md) for work in progress and plans.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/manta-calendar-intro-dark.gif">
+  <img src="docs/assets/manta-calendar-intro.gif" alt="Manta Calendar: select dates and see their notes" width="1200">
+</picture>
+
+A six-second loop of the current view using sample notes. Timing is condensed. This is a view fixture; the original Obsidian capture is below.
+
 ## Install and try
 
-1. Open the [existing Community entry](https://community.obsidian.md/plugins/link-calendar) in Obsidian, then install and enable it. The entry may still show its previous name while the directory updates.
+1. Open the [existing Community entry](https://community.obsidian.md/plugins/link-calendar) in Obsidian, then install and enable it.
 2. Add `- 2026-09-10 scheduled · Project check-in` to a normal note, outside a code block.
 3. Run **Open Manta Calendar**, navigate to September 2026, and select September 10. Select the event to open its note.
 
@@ -18,9 +25,20 @@ The local calendar needs no account. Optional Google sync connects selected note
 
 Manual installation: download the three plugin files from [Releases](https://github.com/woonyong-choi/manta-calendar/releases/latest) into `.obsidian/plugins/link-calendar/`, then reload Obsidian.
 
+<details>
+<summary>Original runtime capture and recorded version</summary>
+
 ![Manta Calendar walkthrough](docs/media/link-calendar-demo.gif)
 
 Obsidian desktop capture, September 8, 2026 (3.6.0); the illustrated calendar view is unchanged in 3.6.5. Google authentication is not shown.
+
+</details>
+
+## Part of the Manta family
+
+Return to a dated experiment, then follow its supporting notes, diagram and runnable example. [Manta Diagrams](https://github.com/woonyong-choi/manta-diagrams), [Manta Graph](https://github.com/woonyong-choi/manta-graph), [Manta Code Blocks](https://github.com/woonyong-choi/manta-code-blocks) each work on their own. Ordinary notes and links connect the work today; automatic handoffs are planned.
+
+**Manta itself is in development and has not been released.** I’m building it to turn source material into a personal wiki you can keep adding to. Shared AI tools and the full wiki workflow are still in development.
 
 ## Help and development
 

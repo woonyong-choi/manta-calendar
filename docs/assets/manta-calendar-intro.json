@@ -1,0 +1,48 @@
+{
+  "hyperframes": "0.8.38",
+  "source_sha256": "cd8587c231d378e9a4701af3f9b814d185d528a98d3960036753f9c17bca3dd1",
+  "inputs_sha256": {
+    "index.html": "cd8587c231d378e9a4701af3f9b814d185d528a98d3960036753f9c17bca3dd1",
+    "assets/action.js": "e94ebddc7f1631028334a18a9de4ee0f8d57aaafb5c975f9790d400129a5f5eb",
+    "assets/gsap.min.js": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280",
+    "assets/product.css": "a5bcd48f46094b9197b21038294be38396e644cb084216be0114818ffd975aeb",
+    "index.motion.json": "d85942ba3f479ef3c1afe2759b7ffe6b0b8ad0bb46fa22c9aa3709e92b667b09",
+    "inputs.json": "31442e7faf170e9925ba33aa42b9f7a9e2b06c75434045d80179b5506c36a7de"
+  },
+  "outputs": [
+    {
+      "file": "manta-calendar-intro.mp4",
+      "bytes": 201281,
+      "sha256": "f4e460fb5bf8d45d284adedb97bed9d4d4003f68e10f701e837d99f19765b501",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "width": 1600,
+          "height": 900,
+          "avg_frame_rate": "60/1"
+        }
+      ],
+      "format": {
+        "duration": "6.000000"
+      }
+    },
+    {
+      "file": "manta-calendar-intro.gif",
+      "bytes": 556504,
+      "sha256": "ddf6c5fdf06054e8ac5865b941ca9de50b8090e019b35891e8022711a05a9e77",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "width": 1200,
+          "height": 675,
+          "avg_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "duration": "6.000000"
+      }
+    }
+  ]
+}

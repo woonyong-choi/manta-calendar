@@ -1,7 +1,7 @@
 /*
  * Manta Calendar aliases Obsidian's public semantic CSS variables so the
- * active host theme remains the single global token source. Component files
- * consume only these --cc-* aliases. Calendar geometry stays plugin-local.
+ * host theme owns semantic colours; the canvas matches the published Wiki.
+ * Component files consume only --cc-* aliases. Geometry stays plugin-local.
  */
 :is(
   .workspace-leaf-content .view-content.link-calendar-view,
@@ -9,8 +9,8 @@
   .link-calendar-embed
 ) {
   /* Shared semantic aliases. */
-  --cc-surface-canvas: var(--background-primary);
-  --cc-surface-panel: var(--background-primary);
+  --cc-surface-canvas: #ffffff;
+  --cc-surface-panel: var(--cc-surface-canvas);
   --cc-surface-subtle: var(--background-secondary);
   --cc-surface-raised: var(--background-secondary-alt);
   --cc-surface-hover: var(--background-modifier-hover);
@@ -94,6 +94,14 @@
   container-type: inline-size;
 }
 
+.theme-dark :is(
+  .workspace-leaf-content .view-content.link-calendar-view,
+  .link-calendar-setting-source,
+  .link-calendar-embed
+) {
+  --cc-surface-canvas: #0d1117;
+}
+
 @media (prefers-contrast: more) {
   :is(
     .workspace-leaf-content .view-content.link-calendar-view,
@@ -109,6 +117,11 @@
 }
 
 @media (forced-colors: active) {
+  .theme-dark :is(
+    .workspace-leaf-content .view-content.link-calendar-view,
+    .link-calendar-setting-source,
+    .link-calendar-embed
+  ),
   :is(
     .workspace-leaf-content .view-content.link-calendar-view,
     .link-calendar-setting-source,
