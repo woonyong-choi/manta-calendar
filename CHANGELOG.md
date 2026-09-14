@@ -8,6 +8,7 @@
 - Require one new Google sign-in after upgrading, preserving existing calendars, selected sources, installation identity, and event mappings. Ignore legacy relay credentials.
 - Add connection cancellation and close the listener on completion, cancellation, expiry, or plugin unload. Add macOS and Windows socket tests and reject release builds with incomplete Desktop registration or relay dependencies.
 - Show success in the browser only after Google tokens are validated and saved. Show a retry message on failure and use the selected language for the browser flow.
+- Match the Wiki's light and dark canvas colors and add six-second, automatically repeating introductions with public sample notes.
 
 ## 3.6.6
 

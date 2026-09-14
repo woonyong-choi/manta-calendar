@@ -23,6 +23,14 @@ Manta Calendar remains a focused navigator over dated Markdown. The original not
 - Test more third-party theme and accessibility combinations.
 - Broader recurrence support only after identity and conflict behavior is specified; current sync does not import recurrence or propagate deletions.
 
+## Next: dates, permissions and recovery
+
+Date formats, time zones and all-day boundaries should remain explicit. Improve the first empty month, source mapping preview, narrow day panels and sync conflict explanations. A planned external AI tool should propose date changes before applying the same permission, revision and sync checks as the UI.
+
+Align type sizes, spacing, neutral surfaces, keyboard focus and status wording with the other Manta tools. Keep this plugin useful on its own. Measure first-use completion, manual corrections, recovery and repeat use against the same public inputs before claiming an improvement. These are planned changes.
+
+[Shared product direction and release criteria](https://github.com/woonyong-choi/manta-diagrams/blob/main/docs/product-direction.md)
+
 ## Out of scope
 
 - Obsidian mobile on iOS and Android.

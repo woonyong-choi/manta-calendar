@@ -7,12 +7,12 @@ Manta Calendar's Google integration is optional and supports desktop Obsidian on
 1. Configure a folder source in Manta Calendar.
 2. Enable Google Calendar in plugin settings.
 3. Select **Connect Google Calendar** and approve the single requested permission in the browser.
-4. Keep Obsidian open on the same computer. The browser returns the approval to that computer automatically. Return to Obsidian, using **Open Obsidian** on the completion page if needed, and check the connection result. No link or code needs to be copied.
+4. Keep Obsidian open on the same computer. The browser shows success after Google credentials have been validated and saved, or a retry message if connecting fails. Return to Obsidian to check the destination calendar. No link or code needs to be copied.
 5. Enable one or more source mappings to allow sending their events. Read-only editing and `access: local-only` are separate settings. An explicit `external_sync: deny` prevents sending a selected note.
 6. Optionally choose **Two-way sync destination** to receive new Google events and Google edits. Existing settings remain send-only until you opt in.
 7. Select **Sync now**.
 
-The plugin creates one dedicated secondary calendar named **Link Calendar**. End users need only their own Google account; no domain, server, or Google developer credentials are required. Each computer signs in separately.
+The plugin creates one dedicated secondary calendar named **Manta Calendar**. End users need only their own Google account; no domain, server, or Google developer credentials are required. Each computer signs in separately.
 
 **Upgrading from 3.x:** sign in once again. Existing calendar identifiers, source selections, installation identity, and event mappings are kept. The old relay token is ignored, and old authorization links cannot finish a version 4 connection. Reconnecting does not sync events or replace an unavailable calendar automatically.
 
@@ -72,6 +72,6 @@ A plugin rollback can reinstall the previous official assets while preserving Ma
 
 ## Connection recovery
 
-If the saved calendar is unavailable after changing accounts, **Create calendar if unavailable** first checks that calendar. A 404 response permits creating an empty **Link Calendar** only for this explicit action; other errors stop recovery. A 404 can mean that the current account cannot access the calendar, so it does not prove deletion. Existing calendars, events, source selections, authorization and per-calendar mappings are preserved. Recovery does not sync events. A later **Sync now** sends allowed notes to the new calendar; it does not move or remove events from the old calendar.
+If the saved calendar is unavailable after upgrading from 3.x or changing accounts, **Create calendar if unavailable** first checks that calendar. A 404 response permits creating an empty **Manta Calendar** only for this explicit action; other errors stop recovery. A 404 means the current connection cannot find or access the calendar; it does not prove deletion. Existing calendars, events, source selections, authorization and per-calendar mappings are preserved. Recovery does not sync events. A later **Sync now** sends allowed notes to the new calendar; it does not move or remove events from the old calendar.
 
 The settings page shows a refreshable connection stage. **Waiting** means approval has not yet returned to this computer; **Exchanging** means Obsidian is contacting Google for credentials. Neither means the destination calendar is ready. Keep Obsidian open, finish approval in the same computer's browser, and return to the originating Vault. Cancel and reconnect if a request expires or the browser closes. If a firewall blocks the local callback, allow Obsidian's loopback connection rather than disabling the firewall. Share only OS, browser, Obsidian version, and connection stage in issue reports; never share callback URLs or tokens.
