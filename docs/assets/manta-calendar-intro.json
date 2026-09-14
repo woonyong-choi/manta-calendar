@@ -1,48 +1,193 @@
 {
   "hyperframes": "0.8.38",
+  "encoder_repository": "https://github.com/woonyong-choi/manta-diagrams",
+  "encoder_revision": "64dfeb3cf59cbf66aa429e0acbc932b923ff4352",
+  "encoder_sha256": "cf97747bf064964ee001906497564adc01e259a945a095d18bec501e0340eedb",
+  "composition": {
+    "product": "Manta Calendar",
+    "version": "3.6.6",
+    "provenance": "Production UI with public sample data; Obsidian host boundary replaced for Graph and Calendar. Timing condensed; not a native Obsidian recording."
+  },
   "source_sha256": "cd8587c231d378e9a4701af3f9b814d185d528a98d3960036753f9c17bca3dd1",
   "inputs_sha256": {
-    "index.html": "cd8587c231d378e9a4701af3f9b814d185d528a98d3960036753f9c17bca3dd1",
     "assets/action.js": "e94ebddc7f1631028334a18a9de4ee0f8d57aaafb5c975f9790d400129a5f5eb",
     "assets/gsap.min.js": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280",
     "assets/product.css": "a5bcd48f46094b9197b21038294be38396e644cb084216be0114818ffd975aeb",
+    "index.html": "cd8587c231d378e9a4701af3f9b814d185d528a98d3960036753f9c17bca3dd1",
     "index.motion.json": "d85942ba3f479ef3c1afe2759b7ffe6b0b8ad0bb46fa22c9aa3709e92b667b09",
     "inputs.json": "31442e7faf170e9925ba33aa42b9f7a9e2b06c75434045d80179b5506c36a7de"
+  },
+  "input_sequence_sha256": "abf3218c2b4e133458f51cd1507e98262464e9f9e5ae04983d50d966545ed67c",
+  "encoding": {
+    "alpha_composite_rgb": [
+      255,
+      255,
+      255
+    ],
+    "mp4": "libx264rgb CRF 0, full-range RGB, sRGB transfer; editing master",
+    "gif": "PNG RGB -> 25fps/1200px -> full histogram palette -> no dither; infinite loop"
+  },
+  "validation": {
+    "native_recording": false,
+    "browser_playback_verified": false,
+    "source_background_rgb": [
+      255,
+      255,
+      255
+    ],
+    "input_frames": 360,
+    "seam_review": "Decoded 800px boundary pair visually reviewed; 4 GIF pixels at card corners differ by at most 2 channel levels. Text, icons, dates and caption match.",
+    "original_composition_inputs_preserved": true,
+    "previous_media_commit": "1bfa23956f935eb67590e4b3148c73de1c44d1ac"
   },
   "outputs": [
     {
       "file": "manta-calendar-intro.mp4",
-      "bytes": 201281,
-      "sha256": "f4e460fb5bf8d45d284adedb97bed9d4d4003f68e10f701e837d99f19765b501",
+      "bytes": 348027,
+      "sha256": "8a72753b4160fa4b58c5be8da87c391ea80468d87d6950338fc26dc508779c78",
       "programs": [],
       "stream_groups": [],
       "streams": [
         {
+          "profile": "High 4:4:4 Predictive",
           "width": 1600,
           "height": 900,
-          "avg_frame_rate": "60/1"
+          "pix_fmt": "gbrp",
+          "color_range": "pc",
+          "color_space": "gbr",
+          "avg_frame_rate": "60/1",
+          "nb_read_frames": "360"
         }
       ],
       "format": {
         "duration": "6.000000"
-      }
+      },
+      "decoded_background_rgb": [
+        255,
+        255,
+        255
+      ],
+      "background_unique_colors": 1,
+      "background_region": [
+        0,
+        0,
+        1600,
+        20
+      ],
+      "background_frames_checked": 360,
+      "first_last_pixels_equal": false,
+      "first_last_changed_pixels": 19,
+      "first_last_max_channel_delta": 2,
+      "boundary_matches_input": true
     },
     {
       "file": "manta-calendar-intro.gif",
-      "bytes": 556504,
-      "sha256": "ddf6c5fdf06054e8ac5865b941ca9de50b8090e019b35891e8022711a05a9e77",
+      "bytes": 98918,
+      "sha256": "9a892a4d6be7e80987ea6bac9b5069edfc977e22b95060926c627ac51f44a47a",
       "programs": [],
       "stream_groups": [],
       "streams": [
         {
           "width": 1200,
           "height": 675,
-          "avg_frame_rate": "25/1"
+          "pix_fmt": "bgra",
+          "avg_frame_rate": "25/1",
+          "nb_read_frames": "150"
         }
       ],
       "format": {
         "duration": "6.000000"
-      }
+      },
+      "decoded_background_rgb": [
+        255,
+        255,
+        255
+      ],
+      "background_unique_colors": 1,
+      "background_region": [
+        0,
+        0,
+        1200,
+        20
+      ],
+      "background_frames_checked": 150,
+      "first_last_pixels_equal": false,
+      "first_last_changed_pixels": 4,
+      "first_last_max_channel_delta": 2,
+      "boundary_matches_input": null
     }
-  ]
+  ],
+  "capture": {
+    "method": "Headless Chromium; original composition; explicit film timeline, DOM, fonts and assets readiness; GSAP seek at n/60",
+    "browser": "HeadlessChrome/131.0.6778.204",
+    "browser_flags": [
+      "--force-color-profile=srgb",
+      "--disable-gpu"
+    ],
+    "capture_date_epoch_ms": 0,
+    "dimensions": [
+      1600,
+      900
+    ],
+    "fps": 60,
+    "frames": 360,
+    "capture_script_sha256": "1805c6a59d6e9abbd70fa9c4fe1f9e603773b56b4c77b6632ccbcbce2d96cfb8",
+    "composition_files_changed": false,
+    "ready_before_first_frame": true,
+    "all_frames_replay_ready": true,
+    "browser_playback_verified": false,
+    "native_recording": false,
+    "replay_states": [
+      {
+        "time": 0.5333333333333333,
+        "shot": "shot-0",
+        "caption": "Pick a date. Find the note.",
+        "icons": 8
+      },
+      {
+        "time": 1.2166666666666666,
+        "shot": "shot-1",
+        "caption": "Your notes, one day at a time.",
+        "icons": 8
+      },
+      {
+        "time": 1.9,
+        "shot": "shot-2",
+        "caption": "Your notes, one day at a time.",
+        "icons": 8
+      },
+      {
+        "time": 2.5833333333333335,
+        "shot": "shot-3",
+        "caption": "Your notes, one day at a time.",
+        "icons": 8
+      },
+      {
+        "time": 3.2666666666666666,
+        "shot": "shot-4",
+        "caption": "Your notes, one day at a time.",
+        "icons": 8
+      },
+      {
+        "time": 4.333333333333333,
+        "shot": "shot-5",
+        "caption": "Your notes, one day at a time.",
+        "icons": 8
+      },
+      {
+        "time": 5.583333333333333,
+        "shot": "shot-6",
+        "caption": "Come back to what matters.",
+        "icons": 8
+      },
+      {
+        "time": 5.983333333333333,
+        "shot": "shot-7",
+        "caption": "Pick a date. Find the note.",
+        "icons": 8
+      }
+    ],
+    "receipt_sha256": "a4c1aede5dc42562a5e4281ca7e5654a606441db4269ca4cec6c7be29d3f61d1",
+    "capture_clock_scope": "JavaScript Date in the isolated capture page only; original composition and product code unchanged"
+  }
 }
