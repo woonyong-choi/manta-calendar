@@ -6,11 +6,11 @@ Find dated notes in a calendar and open them with one click.
 
 **[Install in Obsidian](https://community.obsidian.md/plugins/link-calendar) · [Try the demo Vault](https://github.com/woonyong-choi/obsidian-navigator-demo-vault/releases/latest) · [User guide](docs/user-guide.md)**
 
-Available now: **3.6.5** · Obsidian **1.13.0+** · Desktop and mobile. See [release notes](CHANGELOG.md) for shipped changes and the [roadmap](ROADMAP.md) for work in progress and plans.
+Version: **3.6.6** · Obsidian **1.13.0+** · Desktop and mobile. See [release notes](CHANGELOG.md) for changes and the [roadmap](ROADMAP.md) for work in progress and plans.
 
 ## Install and try
 
-1. In **Settings → Community plugins → Browse**, find **Manta Calendar**, then install and enable it.
+1. Open the [existing Community entry](https://community.obsidian.md/plugins/link-calendar) in Obsidian, then install and enable it. The entry may still show its previous name while the directory updates.
 2. Add `- 2026-09-10 scheduled · Project check-in` to a normal note, outside a code block.
 3. Run **Open Manta Calendar**, navigate to September 2026, and select September 10. Select the event to open its note.
 
