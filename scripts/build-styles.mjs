@@ -1,6 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 const sources = [
+  // manta-tokens 가 생성한다. 정본은 ../manta-tokens/tokens.json.
+  "src/styles/manta-tokens.css",
   "src/styles/tokens.css",
   "src/styles/shell.css",
   "src/styles/month-grid.css",
@@ -9,8 +11,8 @@ const sources = [
 ];
 
 const parts = await Promise.all(sources.map((path) => readFile(path, "utf8")));
-const components = parts.slice(1).join("\n");
-const tokens = parts[0];
+const components = parts.slice(2).join("\n");
+const tokens = parts[1];
 const forbidden = [
   [/(?:^|[^-])#[0-9a-f]{3,8}\b/iu, "literal color"],
   [/\brgba?\(/u, "literal rgb color"],
@@ -29,7 +31,7 @@ if (/(?:^|\})\s*(?:body|html|:root)\b/mu.test(tokens)) {
   throw new Error("Token CSS contains a global root selector");
 }
 
-const hostTokensOnly = tokens.replace(/--cc-surface-canvas: #(ffffff|0d1117);/gu, "");
+const hostTokensOnly = tokens;
 if (/(?:^|[^-])#[0-9a-f]{3,8}\b/iu.test(hostTokensOnly) || /\brgba?\(/u.test(hostTokensOnly)) {
   throw new Error("Only the shared Wiki canvas may own a literal color");
 }
@@ -94,7 +96,7 @@ const hostTokens = new Set([
 ]);
 for (const match of tokens.matchAll(/var\((--[a-z0-9-]+)/gu)) {
   const name = match[1];
-  if (name && !name.startsWith("--cc-") && !hostTokens.has(name)) {
+  if (name && !name.startsWith("--cc-") && !name.startsWith("--manta-") && !hostTokens.has(name)) {
     throw new Error(`Token CSS aliases unsupported host variable: ${name}`);
   }
 }

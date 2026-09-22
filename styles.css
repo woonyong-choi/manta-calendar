@@ -1,6 +1,185 @@
+/* tokens:begin — manta-tokens 가 생성한다. 직접 고치지 말 것. */
+/* manta-tokens — scripts/build.mjs 가 tokens.json 에서 생성한다. 직접 고치지 말 것. */
+
+:root,
+.manta-tokens {
+  --manta-bg: var(--background-primary, #ffffff);
+  --manta-surface: var(--background-secondary, #f4f6f8);
+  --manta-surface-raised: var(--background-secondary-alt, #eceff3);
+  --manta-border: var(--background-modifier-border, #c9cfd6);
+  --manta-border-strong: var(--background-modifier-border-hover, #8a929d);
+  --manta-divider: var(--divider-color, #e3e6ea);
+  --manta-text: var(--text-normal, #1f2328);
+  --manta-text-muted: var(--text-muted, #4b5563);
+  --manta-text-faint: var(--text-faint, #8a929d);
+  --manta-accent: var(--interactive-accent, #2b96ed);
+  --manta-accent-text: var(--text-on-accent, #ffffff);
+  --manta-key-bg: #1f2328;
+  --manta-key-text: #ffffff;
+  --manta-out-bg: #eaf3fc;
+  --manta-out-border: #9cc3e6;
+  --manta-series-1: #42764c;
+  --manta-series-2: #356eaa;
+  --manta-series-3: #896a28;
+  --manta-series-4: #81558d;
+  --manta-error: var(--text-error, #b42318);
+  --manta-warning: var(--text-warning, #b7791f);
+  --manta-success: var(--text-success, #176b35);
+
+  --manta-radius-xs: 3px;
+  --manta-radius-sm: var(--radius-s, 5px);
+  --manta-radius-md: var(--radius-m, 8px);
+  --manta-space-1: var(--size-4-1, 4px);
+  --manta-space-2: var(--size-4-2, 8px);
+  --manta-space-3: var(--size-4-3, 12px);
+  --manta-space-4: var(--size-4-4, 16px);
+  --manta-line-thin: 1px;
+  --manta-line-base: 1.2px;
+  --manta-font-sans: var(--font-text, "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif);
+  --manta-font-ui: var(--font-interface, "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif);
+  --manta-font-mono: var(--font-monospace, "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace);
+  --manta-size-xs: var(--font-ui-smaller, 11px);
+  --manta-size-sm: var(--font-ui-small, 12px);
+  --manta-size-md: var(--font-ui-medium, 13px);
+  --manta-size-lg: var(--font-ui-large, 15px);
+  --manta-size-xl: 18px;
+  --manta-control-height: var(--input-height, 30px);
+  --manta-control-focus-width: var(--focus-ring-width, 2px);
+  --manta-control-icon: var(--icon-size, 16px);
+}
+
+/* 다크: Obsidian 은 .theme-dark, 그 밖의 호스트는 prefers-color-scheme 으로 뒤집는다. */
+.theme-dark,
+[data-theme="dark"] {
+  --manta-bg: var(--background-primary, #0d1117);
+  --manta-surface: var(--background-secondary, #161b22);
+  --manta-surface-raised: var(--background-secondary-alt, #1c2430);
+  --manta-border: var(--background-modifier-border, #3d4754);
+  --manta-border-strong: var(--background-modifier-border-hover, #738091);
+  --manta-divider: var(--divider-color, #2a323d);
+  --manta-text: var(--text-normal, #e6edf3);
+  --manta-text-muted: var(--text-muted, #a4afbc);
+  --manta-text-faint: var(--text-faint, #738091);
+  --manta-accent: var(--interactive-accent, #79c0ff);
+  --manta-accent-text: var(--text-on-accent, #0d1117);
+  --manta-key-bg: #e6edf3;
+  --manta-key-text: #0d1117;
+  --manta-out-bg: #17293b;
+  --manta-out-border: #3b6ea5;
+  --manta-series-1: #9dc9a4;
+  --manta-series-2: #9cbfdf;
+  --manta-series-3: #dfc38a;
+  --manta-series-4: #c9a5d0;
+  --manta-error: var(--text-error, #ff7b72);
+  --manta-warning: var(--text-warning, #d29922);
+  --manta-success: var(--text-success, #3fb950);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not([data-theme="light"]) {
+    --manta-bg: var(--background-primary, #0d1117);
+    --manta-surface: var(--background-secondary, #161b22);
+    --manta-surface-raised: var(--background-secondary-alt, #1c2430);
+    --manta-border: var(--background-modifier-border, #3d4754);
+    --manta-border-strong: var(--background-modifier-border-hover, #738091);
+    --manta-divider: var(--divider-color, #2a323d);
+    --manta-text: var(--text-normal, #e6edf3);
+    --manta-text-muted: var(--text-muted, #a4afbc);
+    --manta-text-faint: var(--text-faint, #738091);
+    --manta-accent: var(--interactive-accent, #79c0ff);
+    --manta-accent-text: var(--text-on-accent, #0d1117);
+    --manta-key-bg: #e6edf3;
+    --manta-key-text: #0d1117;
+    --manta-out-bg: #17293b;
+    --manta-out-border: #3b6ea5;
+    --manta-series-1: #9dc9a4;
+    --manta-series-2: #9cbfdf;
+    --manta-series-3: #dfc38a;
+    --manta-series-4: #c9a5d0;
+    --manta-error: var(--text-error, #ff7b72);
+    --manta-warning: var(--text-warning, #d29922);
+    --manta-success: var(--text-success, #3fb950);
+}
+}
+
+/* 라이트를 고정한 호스트(인쇄·이력서 PDF)는 명시 선택자로 되돌린다. */
+.theme-light,
+[data-theme="light"] {
+  --manta-bg: var(--background-primary, #ffffff);
+  --manta-surface: var(--background-secondary, #f4f6f8);
+  --manta-surface-raised: var(--background-secondary-alt, #eceff3);
+  --manta-border: var(--background-modifier-border, #c9cfd6);
+  --manta-border-strong: var(--background-modifier-border-hover, #8a929d);
+  --manta-divider: var(--divider-color, #e3e6ea);
+  --manta-text: var(--text-normal, #1f2328);
+  --manta-text-muted: var(--text-muted, #4b5563);
+  --manta-text-faint: var(--text-faint, #8a929d);
+  --manta-accent: var(--interactive-accent, #2b96ed);
+  --manta-accent-text: var(--text-on-accent, #ffffff);
+  --manta-key-bg: #1f2328;
+  --manta-key-text: #ffffff;
+  --manta-out-bg: #eaf3fc;
+  --manta-out-border: #9cc3e6;
+  --manta-series-1: #42764c;
+  --manta-series-2: #356eaa;
+  --manta-series-3: #896a28;
+  --manta-series-4: #81558d;
+  --manta-error: var(--text-error, #b42318);
+  --manta-warning: var(--text-warning, #b7791f);
+  --manta-success: var(--text-success, #176b35);
+}
+
+@media (forced-colors: active) {
+  :root,
+  .manta-tokens {
+  --manta-bg: Canvas;
+  --manta-surface: Canvas;
+  --manta-text: CanvasText;
+  --manta-border: CanvasText;
+  --manta-border-strong: CanvasText;
+}
+}
+
+/* cc-* 는 manta 토큰의 별칭이다. 새 규칙은 --manta-* 를 직접 쓴다. */
+:root,
+.manta-tokens {
+  --cc-surface-canvas: var(--manta-bg);
+  --cc-surface-panel: var(--manta-bg);
+  --cc-surface-subtle: var(--manta-surface);
+  --cc-surface-raised: var(--manta-surface-raised);
+  --cc-text-primary: var(--manta-text);
+  --cc-text-secondary: var(--manta-text-muted);
+  --cc-text-tertiary: var(--manta-text-faint);
+  --cc-text-on-accent: var(--manta-accent-text);
+  --cc-separator: var(--manta-divider);
+  --cc-separator-strong: var(--manta-border);
+  --cc-accent: var(--manta-accent);
+  --cc-focus: var(--manta-accent);
+  --cc-warning: var(--manta-warning);
+  --cc-error: var(--manta-error);
+  --cc-font-family: var(--manta-font-ui);
+  --cc-font-mono: var(--manta-font-mono);
+  --cc-font-xs: var(--manta-size-xs);
+  --cc-font-sm: var(--manta-size-sm);
+  --cc-font-md: var(--manta-size-md);
+  --cc-font-lg: var(--manta-size-lg);
+  --cc-space-1: var(--manta-space-1);
+  --cc-space-2: var(--manta-space-2);
+  --cc-space-3: var(--manta-space-3);
+  --cc-space-4: var(--manta-space-4);
+  --cc-radius-xs: var(--manta-radius-xs);
+  --cc-radius-sm: var(--manta-radius-sm);
+  --cc-radius-md: var(--manta-radius-md);
+  --cc-control-height: var(--manta-control-height);
+  --cc-icon-size: var(--manta-control-icon);
+  --cc-focus-width: var(--manta-control-focus-width);
+}
+/* tokens:end */
+
 /*
  * Manta Calendar aliases Obsidian's public semantic CSS variables so the
- * host theme owns semantic colours; the canvas matches the published Wiki.
+ * 값의 정본은 manta-tokens 다. 아래는 --cc-* 를 --manta-* 에 잇는 별칭이고,
+ * manta 에 대응이 없는 항목만 Obsidian 변수를 직접 가리킨다. host theme owns semantic colours; the canvas matches the published Wiki.
  * Component files consume only --cc-* aliases. Geometry stays plugin-local.
  */
 :is(
@@ -9,29 +188,29 @@
   .link-calendar-embed
 ) {
   /* Shared semantic aliases. */
-  --cc-surface-canvas: #ffffff;
-  --cc-surface-panel: var(--cc-surface-canvas);
-  --cc-surface-subtle: var(--background-secondary);
-  --cc-surface-raised: var(--background-secondary-alt);
+  --cc-surface-canvas: var(--manta-bg);
+  --cc-surface-panel: var(--manta-bg);
+  --cc-surface-subtle: var(--manta-surface);
+  --cc-surface-raised: var(--manta-surface-raised);
   --cc-surface-hover: var(--background-modifier-hover);
   --cc-surface-active: var(--background-modifier-active-hover);
-  --cc-text-primary: var(--text-normal);
-  --cc-text-secondary: var(--text-muted);
-  --cc-text-tertiary: var(--text-faint);
-  --cc-text-on-accent: var(--text-on-accent);
-  --cc-separator: var(--divider-color);
-  --cc-separator-strong: var(--background-modifier-border-hover);
-  --cc-accent: var(--interactive-accent);
+  --cc-text-primary: var(--manta-text);
+  --cc-text-secondary: var(--manta-text-muted);
+  --cc-text-tertiary: var(--manta-text-faint);
+  --cc-text-on-accent: var(--manta-accent-text);
+  --cc-separator: var(--manta-divider);
+  --cc-separator-strong: var(--manta-border);
+  --cc-accent: var(--manta-accent);
   --cc-accent-hover: var(--interactive-accent-hover);
-  --cc-focus: var(--interactive-accent);
-  --cc-warning: var(--text-warning);
-  --cc-error: var(--text-error);
-  --cc-font-family: var(--font-interface);
-  --cc-font-mono: var(--font-monospace);
-  --cc-font-xs: var(--font-ui-smaller);
-  --cc-font-sm: var(--font-ui-small);
-  --cc-font-md: var(--font-ui-medium);
-  --cc-font-lg: var(--font-ui-large);
+  --cc-focus: var(--manta-accent);
+  --cc-warning: var(--manta-warning);
+  --cc-error: var(--manta-error);
+  --cc-font-family: var(--manta-font-ui);
+  --cc-font-mono: var(--manta-font-mono);
+  --cc-font-xs: var(--manta-size-xs);
+  --cc-font-sm: var(--manta-size-sm);
+  --cc-font-md: var(--manta-size-md);
+  --cc-font-lg: var(--manta-size-lg);
   --cc-font-title: var(--h4-size);
   --cc-font-display: var(--h3-size);
   --cc-weight-medium: var(--font-medium);
@@ -40,24 +219,24 @@
   --cc-line-height: var(--line-height-normal);
   --cc-letter-tight: var(--letter-spacing-tight);
   --cc-letter-wide: var(--letter-spacing-wide);
-  --cc-space-1: var(--size-4-1);
-  --cc-space-2: var(--size-4-2);
-  --cc-space-3: var(--size-4-3);
-  --cc-space-4: var(--size-4-4);
+  --cc-space-1: var(--manta-space-1);
+  --cc-space-2: var(--manta-space-2);
+  --cc-space-3: var(--manta-space-3);
+  --cc-space-4: var(--manta-space-4);
   --cc-space-5: var(--size-4-5);
   --cc-space-6: var(--size-4-6);
   --cc-space-8: var(--size-4-8);
-  --cc-radius-xs: var(--radius-s);
-  --cc-radius-sm: var(--radius-s);
-  --cc-radius-md: var(--radius-m);
+  --cc-radius-xs: var(--manta-radius-xs);
+  --cc-radius-sm: var(--manta-radius-sm);
+  --cc-radius-md: var(--manta-radius-md);
   --cc-radius-lg: var(--radius-l);
   --cc-radius-pill: var(--radius-xl);
   --cc-shadow-overlay: var(--shadow-l);
   --cc-motion-fast: var(--anim-duration-fast) var(--anim-motion-smooth);
   --cc-motion-base: var(--anim-duration-moderate) var(--anim-motion-smooth);
-  --cc-control-height: var(--input-height);
-  --cc-icon-size: var(--icon-size);
-  --cc-focus-width: var(--focus-ring-width);
+  --cc-control-height: var(--manta-control-height);
+  --cc-icon-size: var(--manta-control-icon);
+  --cc-focus-width: var(--manta-control-focus-width);
 
   /* Calendar-only geometry and density. */
   --cc-calendar-header-height: calc(var(--cc-control-height) + var(--cc-space-4));
@@ -99,7 +278,7 @@
   .link-calendar-setting-source,
   .link-calendar-embed
 ) {
-  --cc-surface-canvas: #0d1117;
+  --cc-surface-canvas: var(--manta-bg);
 }
 
 @media (prefers-contrast: more) {
@@ -108,9 +287,9 @@
     .link-calendar-setting-source,
     .link-calendar-embed
   ) {
-    --cc-text-secondary: var(--text-normal);
-    --cc-text-tertiary: var(--text-muted);
-    --cc-separator: var(--background-modifier-border-hover);
+    --cc-text-secondary: var(--manta-text-muted);
+    --cc-text-tertiary: var(--manta-text-faint);
+    --cc-separator: var(--manta-divider);
     --cc-calendar-category-tint: 22%;
     --cc-calendar-category-tint-muted: 16%;
   }
@@ -127,21 +306,21 @@
     .link-calendar-setting-source,
     .link-calendar-embed
   ) {
-    --cc-surface-canvas: Canvas;
+    --cc-surface-canvas: var(--manta-bg);
     --cc-surface-panel: Canvas;
-    --cc-surface-subtle: Canvas;
-    --cc-surface-raised: ButtonFace;
+    --cc-surface-subtle: var(--manta-surface);
+    --cc-surface-raised: var(--manta-surface-raised);
     --cc-surface-hover: Highlight;
     --cc-surface-active: Highlight;
-    --cc-text-primary: CanvasText;
-    --cc-text-secondary: CanvasText;
-    --cc-text-tertiary: GrayText;
-    --cc-text-on-accent: HighlightText;
-    --cc-separator: CanvasText;
-    --cc-separator-strong: CanvasText;
-    --cc-accent: Highlight;
+    --cc-text-primary: var(--manta-text);
+    --cc-text-secondary: var(--manta-text-muted);
+    --cc-text-tertiary: var(--manta-text-faint);
+    --cc-text-on-accent: var(--manta-accent-text);
+    --cc-separator: var(--manta-divider);
+    --cc-separator-strong: var(--manta-border);
+    --cc-accent: var(--manta-accent);
     --cc-accent-hover: Highlight;
-    --cc-focus: Highlight;
+    --cc-focus: var(--manta-accent);
     --cc-shadow-overlay: none;
   }
 }
