@@ -1,4 +1,4 @@
-<img src="docs/assets/product-icon.svg" alt="" width="48" height="48" />
+<img src="https://raw.githubusercontent.com/woonyong-choi/manta-calendar/main/docs/assets/product-icon.svg" alt="" width="48" height="48" />
 
 # Manta Calendar
 
@@ -9,8 +9,8 @@ Find dated notes in a calendar and open them with one click.
 Version: **4.0.0** · Obsidian **1.13.0+** · **macOS and Windows**. See [release notes](CHANGELOG.md) for changes and the [roadmap](ROADMAP.md) for work in progress and plans.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/manta-calendar-intro-dark.gif">
-  <img src="docs/assets/manta-calendar-intro.gif" alt="Manta Calendar: select dates and see their notes" width="1200">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/woonyong-choi/manta-calendar/main/docs/assets/manta-calendar-intro-dark.gif">
+  <img src="https://raw.githubusercontent.com/woonyong-choi/manta-calendar/main/docs/assets/manta-calendar-intro.gif" alt="Manta Calendar: select dates and see their notes" width="1200">
 </picture>
 
 A six-second loop of the current view using sample notes. Timing is condensed. This is a view fixture; the original Obsidian capture is below.
@@ -30,7 +30,7 @@ Manual installation: download the three plugin files from [Releases](https://git
 <details>
 <summary>Original runtime capture and recorded version</summary>
 
-![Manta Calendar walkthrough](docs/media/link-calendar-demo.gif)
+![Manta Calendar walkthrough](https://raw.githubusercontent.com/woonyong-choi/manta-calendar/main/docs/media/link-calendar-demo.gif)
 
 Obsidian desktop capture, September 8, 2026 (3.6.0); the illustrated calendar view is unchanged in 4.0.0. Google authentication is not shown.
 
