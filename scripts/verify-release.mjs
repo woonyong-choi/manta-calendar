@@ -24,6 +24,16 @@ const requiredMedia = [
   "docs/media/link-calendar-agenda.png",
 ];
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// README may name an asset by its repository-relative path or by the GitHub raw URL
+// that also renders outside GitHub (plugin directory, npm). Both point at the same
+// file, and existence is always checked against the relative path below.
+const embedsAsset = (readme, path) => {
+  const rawPrefix = String.raw`https://raw\.githubusercontent\.com/[^/\s)]+/[^/\s)]+/main/`;
+  return new RegExp(String.raw`\]\((?:${rawPrefix})?${escapeRegExp(path)}\)`).test(readme);
+};
+
 const imageDimensions = (bytes, path) => {
   if (bytes.subarray(0, 8).toString("hex") === "89504e470d0a1a0a") {
     return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
@@ -132,7 +142,7 @@ for (const path of requiredMedia) {
     errors.push(`release media record is missing ${path}`);
     continue;
   }
-  if (path.endsWith(".gif") && !publicDocs[0].includes(`](${path})`)) errors.push(`README does not embed ${path}`);
+  if (path.endsWith(".gif") && !embedsAsset(publicDocs[0], path)) errors.push(`README does not embed ${path}`);
   const bytes = await readFile(path);
   const dimensions = imageDimensions(bytes, path);
   if (dimensions.width < 1600 || dimensions.height < 900) errors.push(`${path} is too small`);
